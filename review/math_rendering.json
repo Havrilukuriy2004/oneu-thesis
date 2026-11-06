@@ -1,0 +1,50 @@
+[
+  {
+    "file": "output_nbu/ou_dynamics/figures/svg/OU_F10_vasicek_decay.svg",
+    "changes": 1
+  },
+  {
+    "file": "output_nbu/ou_dynamics/figures/svg/OU_F15_stable_shares_ci.svg",
+    "changes": 25
+  },
+  {
+    "file": "output_nbu/ou_dynamics/figures/svg/OU_F1_policy_mean.svg",
+    "changes": 1
+  },
+  {
+    "file": "output_nbu/ou_dynamics/figures/svg/OU_F2_hh_term_target.svg",
+    "changes": 1
+  },
+  {
+    "file": "output_nbu/ou_dynamics/figures/svg/OU_F3_half_lives.svg",
+    "changes": 8
+  },
+  {
+    "file": "output_nbu/ou_dynamics/figures/svg/OU_F8_stable_shares_banks.svg",
+    "changes": 2
+  },
+  {
+    "file": "output_nbu/section_2_1_v2/figures/svg/D1_convexity_betas.svg",
+    "changes": 1
+  },
+  {
+    "file": "output_nbu/section_2_1_v2/figures/svg/D5_duration_nmd.svg",
+    "changes": 4
+  },
+  {
+    "file": "output_nbu/section_2_2/figures/svg/S22_P10_robustness.svg",
+    "changes": 2
+  },
+  {
+    "file": "output_nbu/section_2_2/figures/svg/S22_P4_markov_betas.svg",
+    "changes": 1
+  },
+  {
+    "file": "output_nbu/section_2_3/figures/svg/S23_R3_system_gap.svg",
+    "changes": 1
+  },
+  {
+    "file": "output_nbu/section_2_4/figures/svg/S24_R3_nominal_vs_shadow.svg",
+    "changes": 1
+  }
+]
