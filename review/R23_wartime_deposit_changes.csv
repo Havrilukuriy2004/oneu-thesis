@@ -1,0 +1,5 @@
+﻿product,ccy,jan2022,mar2022,two_month_change,note
+hh_demand,uah,242871.93088000003,324078.0818,0.334357908819537,FX stocks are UAH equivalents; exchange-rate valuation is not removed.
+hh_demand,fx,155679.03573,157133.04271,0.009339773805650653,FX stocks are UAH equivalents; exchange-rate valuation is not removed.
+corp_demand,uah,389899.46439,390047.70003,0.0003801893912112053,FX stocks are UAH equivalents; exchange-rate valuation is not removed.
+corp_demand,fx,204412.92952,175436.4361,-0.1417546996075164,FX stocks are UAH equivalents; exchange-rate valuation is not removed.
