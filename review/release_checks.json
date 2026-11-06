@@ -1,0 +1,98 @@
+[
+  {
+    "check": "unique bank-month source keys",
+    "passed": true
+  },
+  {
+    "check": "cleaned names preserve unique bank choices",
+    "passed": true
+  },
+  {
+    "check": "snapshot hashes match reviewed inputs",
+    "passed": true
+  },
+  {
+    "check": "past-only and comparison use identical sample size",
+    "passed": true
+  },
+  {
+    "check": "BH adjusted p never below raw p",
+    "passed": true
+  },
+  {
+    "check": "loss flags never mark an EVE gain",
+    "passed": true
+  },
+  {
+    "check": "opposite parallel shocks reverse linear EVE",
+    "passed": true
+  },
+  {
+    "check": "IRRBB_Stress_Test.xlsx contains formulas",
+    "passed": true
+  },
+  {
+    "check": "IRRBB_Stress_Test.xlsx contains no literal Excel errors",
+    "passed": true
+  },
+  {
+    "check": "Bank_Repricing_Funding_Tool.xlsx contains formulas",
+    "passed": true
+  },
+  {
+    "check": "Bank_Repricing_Funding_Tool.xlsx contains no literal Excel errors",
+    "passed": true
+  },
+  {
+    "check": "all raster figures decode completely",
+    "passed": true
+  },
+  {
+    "check": "OU_F10_vasicek_decay has matching raster and vector files",
+    "passed": true
+  },
+  {
+    "check": "OU_F15_stable_shares_ci has matching raster and vector files",
+    "passed": true
+  },
+  {
+    "check": "OU_F1_policy_mean has matching raster and vector files",
+    "passed": true
+  },
+  {
+    "check": "OU_F2_hh_term_target has matching raster and vector files",
+    "passed": true
+  },
+  {
+    "check": "OU_F3_half_lives has matching raster and vector files",
+    "passed": true
+  },
+  {
+    "check": "OU_F8_stable_shares_banks has matching raster and vector files",
+    "passed": true
+  },
+  {
+    "check": "D1_convexity_betas has matching raster and vector files",
+    "passed": true
+  },
+  {
+    "check": "D5_duration_nmd has matching raster and vector files",
+    "passed": true
+  },
+  {
+    "check": "S22_P10_robustness has matching raster and vector files",
+    "passed": true
+  },
+  {
+    "check": "S22_P4_markov_betas has matching raster and vector files",
+    "passed": true
+  },
+  {
+    "check": "S23_R3_system_gap has matching raster and vector files",
+    "passed": true
+  },
+  {
+    "check": "S24_R3_nominal_vs_shadow has matching raster and vector files",
+    "passed": true
+  }
+]
