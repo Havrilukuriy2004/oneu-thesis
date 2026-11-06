@@ -1,0 +1,10 @@
+# Local caches and transient files
+.Rproj.user/
+.Rhistory
+.RData
+__pycache__/
+*.pyc
+*.log
+data_nbu/raw/
+data_nbu/parquet/*.rds
+review/equation.*
