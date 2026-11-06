@@ -1,0 +1,26 @@
+[
+  {
+    "file": "output_nbu/section_2_4/tables/S24_R3_banks_latest.csv",
+    "changed_cells": 58
+  },
+  {
+    "file": "output_nbu/section_2_3/tables/S23_bank_items_latest.csv",
+    "changed_cells": 812
+  },
+  {
+    "file": "output_nbu/section_2_3/tables/S23_R3_bank_gaps_latest.csv",
+    "changed_cells": 58
+  },
+  {
+    "file": "output_nbu/section_2_3/tables/S23_R6_bank_realised_nim_beta.csv",
+    "changed_cells": 66
+  },
+  {
+    "file": "output_nbu/section_2_3/tables/S23_bank_totals_latest.csv",
+    "changed_cells": 58
+  },
+  {
+    "file": "output_nbu/ou_dynamics/tables/OU_bank_nii_at_risk.csv",
+    "changed_cells": 58
+  }
+]
