@@ -1,0 +1,34 @@
+{
+  "updated": "2026-11-07",
+  "r_version": "4.3.3",
+  "ggplot2_version": "3.4.4",
+  "numerically_executed": [
+    "10_section_2_3_repricing_gap_v6.R",
+    "11_section_2_4_shadow_cost_v6.R",
+    "15_robustness_review.py",
+    "12_bank_excel.py",
+    "13_irrbb_stress_test.py"
+  ],
+  "upstream_coefficients": "module 07 LP outputs retained from supplied snapshot",
+  "full_R_driver_executed": false,
+  "excel_full_recalculation": false,
+  "new_figures": 6,
+  "scenario_chart_repaired": true,
+  "scenario_data_unchanged": true,
+  "base_S24_data_unchanged": true,
+  "checks_passed": 174,
+  "input_sha256": {
+    "mart_system_assets_v6.parquet": "be535aad9162135d74585e8177b9b137ccaa4cabdcee800df398e27a0273537f",
+    "mart_system_product_v6.parquet": "010928b01e1d9dca32ebdf6ede8a9c7539289639d68c210396a89065f50ad100",
+    "mart_fm_rates_long_v6.parquet": "94ca9498ea4e434c77f42bc2674ea2bdab3600015f5db335326fc0639f272ede",
+    "mart_system_month_v6.parquet": "ca43159e70a8fe59a0fd896360aab4ab27c6472106172a9b5221ec28d3505492",
+    "mart_bank_assets_v6.parquet": "fbd8d1b7ade1c7937ac5f60bc616e4f9586d02fd7e01dbaea52c62d7d6360403",
+    "mart_bank_month_v6.parquet": "7f45c3929dddfb6052a5c6c2b2e6e0e001ca36f32313686605e1a8aa98b403c2"
+  },
+  "code_sha256": {
+    "utils_figures_bw_v6.R": "51441aacd043f886e1cb2c1e02085d8a83953679cdb72dec6d6ef95cee3d7f04",
+    "utils_section23_24_figures.R": "e4f39d73c16fceede0195efb428a8328db801ddfeb9e9b86bc2f4cbe3538e608",
+    "10_section_2_3_repricing_gap_v6.R": "07f78f48bc9675d6b4482c79bdd80037fcf94a1746bfef1f2196153ea0023d7d",
+    "11_section_2_4_shadow_cost_v6.R": "73b090929d59e735ebc8f3a7d0601b91f1b8a2b7552d2308b28fd45c4f69d252"
+  }
+}

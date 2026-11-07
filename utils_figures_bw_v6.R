@@ -119,19 +119,34 @@ draw_key_hatch <- function(data, params, size) {
 .to_bw <- function(q) {
   b <- tryCatch(ggplot_build(q), error = function(e) NULL); if (is.null(b)) return(q)
   .HATCH$map <- list()
+  same_mapping <- function(a, b) identical(rlang::get_expr(a), rlang::get_expr(b))
+  line_geoms <- c("GeomLine", "GeomPath", "GeomStep", "GeomSmooth")
+  independent <- function(aesthetic, geoms = NULL) any(vapply(q$layers, function(L) {
+    if (!is.null(geoms) && !class(L$geom)[1] %in% geoms) return(FALSE)
+    colour <- .layer_q(q, L, "colour"); other <- .layer_q(q, L, aesthetic)
+    !is.null(colour) && !is.null(other) && !same_mapping(colour, other)
+  }, logical(1)))
+  separate_linetype <- independent("linetype", line_geoms)
+  separate_shape <- independent("shape")
+  has_points <- any(vapply(q$layers, function(L) inherits(L$geom, "GeomPoint") &&
+    !is.null(.layer_q(q, L, "colour")), logical(1)))
   # ---- colour: tones + line types + markers, merged legend ------------------
   csc <- b$plot$scales$get_scales("colour")
   if (!is.null(csc) && inherits(csc, "ScaleDiscrete")) {
     br <- csc$get_breaks(); br <- br[!is.na(br)]; lb <- csc$get_labels(br); n <- length(br)
     if (n) {
       nm <- as.character(br)
-      q <- suppressMessages(q + scale_colour_manual(values = setNames(rep_len(BW_LINE_COL, n), nm), breaks = br, labels = lb, name = NULL) +
-                              scale_linetype_manual(values = setNames(rep_len(BW_LT, n), nm), breaks = br, labels = lb, name = NULL) +
-                              scale_shape_manual(values = setNames(rep_len(if (n >= 3) BW_SHAPE else rep(NA, 8), n), nm), breaks = br, labels = lb, name = NULL, na.value = NA))
+      # Independent aesthetics have different levels, e.g. shock size and model.
+      # Applying shock breaks to a model linetype scale makes every line NA.
+      tones <- if (separate_linetype) grDevices::grey.colors(n, start = .05, end = .65) else rep_len(BW_LINE_COL, n)
+      q <- suppressMessages(q + scale_colour_manual(values = setNames(tones, nm), breaks = br, labels = lb, name = NULL))
+      if (!separate_linetype) q <- suppressMessages(q + scale_linetype_manual(values = setNames(rep_len(BW_LT, n), nm), breaks = br, labels = lb, name = NULL))
+      point_shapes <- if (has_points) BW_SHAPE_PT else if (n >= 3) BW_SHAPE else rep(NA, 8)
+      if (!separate_shape) q <- suppressMessages(q + scale_shape_manual(values = setNames(rep_len(point_shapes, n), nm), breaks = br, labels = lb, name = NULL, na.value = NA))
       pts_scatter <- FALSE
       for (i in seq_along(q$layers)) {
         L <- q$layers[[i]]; g <- class(L$geom)[1]; cq <- .layer_q(q, L, "colour"); if (is.null(cq)) next
-        if (g %in% c("GeomLine", "GeomPath", "GeomStep", "GeomSmooth") && is.null(.layer_q(q, L, "linetype"))) {
+        if (!separate_linetype && g %in% line_geoms && is.null(.layer_q(q, L, "linetype"))) {
           q$layers[[i]]$mapping$linetype <- cq
           if (n >= 3) {                                                         # sparse markers on each series
             d <- if (is.data.frame(L$data)) L$data else q$data
@@ -146,11 +161,17 @@ draw_key_hatch <- function(data, params, size) {
               lev <- unique(as.character(md$.g))
               md <- do.call(rbind, lapply(split(md, grpkey), function(z) { z <- z[order(z$.x), ]; k <- max(1L, floor(nrow(z) / 9))
                 off <- (match(as.character(z$.g[1]), lev) - 1L) %% k; z[seq(1 + off, nrow(z), by = k), , drop = FALSE] }))
-              if (!is.null(md) && nrow(md)) q <- q + geom_point(data = md, aes(x = .x, y = .y, shape = .g, colour = .g), inherit.aes = FALSE, size = 1.3, stroke = .45, show.legend = NA)
+              if (!is.null(md) && nrow(md)) {
+                # NA shapes intentionally omit markers on the first two lines.
+                # Remove those marker rows instead of emitting missing-value warnings.
+                shape_values <- setNames(rep_len(point_shapes, n), nm)
+                md <- md[!is.na(shape_values[as.character(md$.g)]), , drop = FALSE]
+                if (nrow(md)) q <- q + geom_point(data = md, aes(x = .x, y = .y, shape = .g, colour = .g), inherit.aes = FALSE, size = 1.3, stroke = .45, show.legend = NA)
+              }
             }
           }
         }
-        if (g %in% c("GeomPoint") && is.null(.layer_q(q, L, "shape"))) { q$layers[[i]]$mapping$shape <- cq; pts_scatter <- TRUE }
+        if (!separate_shape && g %in% c("GeomPoint") && is.null(.layer_q(q, L, "shape"))) { q$layers[[i]]$mapping$shape <- cq; pts_scatter <- TRUE }
       }
       if (pts_scatter) q <- suppressMessages(q + scale_shape_manual(values = setNames(rep_len(BW_SHAPE_PT, n), nm), breaks = br, labels = lb, name = NULL))
     }

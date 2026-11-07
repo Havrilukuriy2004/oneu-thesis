@@ -46,7 +46,8 @@ def run(root):
     # Cover the historical system ratio only where every underlying bank has Tier 1.
     B=pd.read_parquet(root/'data_nbu/parquet/mart_bank_month_v6.parquet')
     B=attach(B[['nkb','month']],root)
-    cov=B.groupby('month').agg(tier1_banks=('tier1_mn','count'),capital_panel_banks=('nkb','size'),T1=('tier1_mn','sum')).reset_index()
+    B['positive_tier1_mn']=B.tier1_mn.where(B.tier1_mn.gt(0))
+    cov=B.groupby('month').agg(tier1_banks=('positive_tier1_mn','count'),capital_panel_banks=('nkb','size'),T1=('positive_tier1_mn',lambda x:x.sum(min_count=1))).reset_index()
     system=pd.read_csv(tab/'S23_R3_system_monthly.csv',parse_dates=['month'])
     system=system.drop(columns=[c for c in cov if c in system and c!='month'])
     system=system.merge(cov,on='month',how='left',validate='one_to_one')

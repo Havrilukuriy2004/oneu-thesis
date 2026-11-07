@@ -68,5 +68,27 @@ for p in (ROOT/'output_nbu/bank_excel').glob('*.xlsx'):
  for row in list(ws.iter_rows(min_row=5,max_row=63,values_only=True)):
   check(p.name+' Tier 1 bank '+str(row[0]),np.isclose(row[t1col],latest_cap.loc[str(row[0]),'tier1_mn']))
  w.close()
+# These checks tie the new figures to real section outputs and their units.
+t23=ROOT/'output_nbu/section_2_3/tables';t24=ROOT/'output_nbu/section_2_4/tables'
+for section,tab in [('2_3',t23),('2_4',t24)]:
+ status=pd.read_csv(tab/('S'+section.replace('_','')+'_00_blocks_status.csv'))
+ check(section+' R blocks completed',status.status.eq('ok').all())
+scenario=pd.read_csv(t23/'S23_R5_scenarios_system.csv')
+check('six complete 24-month scenarios',len(scenario)==144 and not scenario.duplicated(['shock_bp','month_h']).any() and scenario.shock_bp.nunique()==6 and scenario.groupby('shock_bp').month_h.nunique().eq(24).all())
+check('scenario values are finite and nonzero',np.isfinite(scenario.select_dtypes('number')).all().all() and scenario.nii_asym_pct.abs().max()>1)
+contrib=pd.read_csv(t23/'S23_R9_nii_contributions_latest.csv')
+sys=pd.read_csv(t23/'S23_R3_system_monthly.csv').iloc[-1]
+check('NII figure contributions sum to system result',np.allclose([contrib.nii_contract_mn.sum(),contrib.nii_revealed_mn.sum()],[sys.dNII_c,sys.dNII_r]))
+risk=pd.read_csv(t23/'S23_R9_bank_risk_views_latest.csv')
+check('joint figure shares the 200bp shock',np.allclose(risk.nii_revealed_200bp_pct,2*risk.nii_revealed_pct))
+check('risk view has unique banks and observed positive NII',not risk.nkb.duplicated().any() and risk.nii12_mn.gt(0).all() and risk.eve_behavioural_tier1_pct.notna().all())
+products=pd.read_csv(t24/'S24_R9_product_cost_comparison.csv')
+check('cost figure has four products in two currencies',len(products)==8 and not products.duplicated(['prod','ccy']).any() and np.isfinite(products[['nominal_pct','economic_pct']]).all().all())
+fx=pd.read_csv(t24/'S24_R9_fx_cost_gap.csv')
+check('FX figure economic and nominal gaps are in percentage points',np.allclose(fx.gap_nominal_pp,100*(fx.nominal_fx-fx.nominal_uah)) and np.allclose(fx.gap_economic_ueq_pp,100*(fx.economic_ueq_fx-fx.economic_ueq_uah)))
+figures=['S23_R5_scenarios','S23_R9_nii_contributions','S23_R9_nii_distribution_ownership','S23_R9_nii_eve_joint','S24_R9_product_costs','S24_R9_fx_cost_gap','S24_R9_cd_spread']
+for stem in figures:
+ base=ROOT/'output_nbu'/('section_2_3' if stem.startswith('S23') else 'section_2_4')/'figures'
+ check(stem+' has current raster and vector exports',all(p.is_file() and p.stat().st_size>1000 for p in [base/(stem+'.png'),base/'pdf'/(stem+'.pdf'),base/'svg'/(stem+'.svg')]))
 (ROOT/'review/release_checks.json').write_text(json.dumps(checks,indent=2))
 print(len(checks),'release checks passed')
