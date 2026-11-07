@@ -630,5 +630,69 @@
   {
     "check": "Bank_Repricing_Funding_Tool.xlsx Tier 1 bank 129",
     "passed": true
+  },
+  {
+    "check": "2_3 R blocks completed",
+    "passed": true
+  },
+  {
+    "check": "2_4 R blocks completed",
+    "passed": true
+  },
+  {
+    "check": "six complete 24-month scenarios",
+    "passed": true
+  },
+  {
+    "check": "scenario values are finite and nonzero",
+    "passed": true
+  },
+  {
+    "check": "NII figure contributions sum to system result",
+    "passed": true
+  },
+  {
+    "check": "joint figure shares the 200bp shock",
+    "passed": true
+  },
+  {
+    "check": "risk view has unique banks and observed positive NII",
+    "passed": true
+  },
+  {
+    "check": "cost figure has four products in two currencies",
+    "passed": true
+  },
+  {
+    "check": "FX figure economic and nominal gaps are in percentage points",
+    "passed": true
+  },
+  {
+    "check": "S23_R5_scenarios has current raster and vector exports",
+    "passed": true
+  },
+  {
+    "check": "S23_R9_nii_contributions has current raster and vector exports",
+    "passed": true
+  },
+  {
+    "check": "S23_R9_nii_distribution_ownership has current raster and vector exports",
+    "passed": true
+  },
+  {
+    "check": "S23_R9_nii_eve_joint has current raster and vector exports",
+    "passed": true
+  },
+  {
+    "check": "S24_R9_product_costs has current raster and vector exports",
+    "passed": true
+  },
+  {
+    "check": "S24_R9_fx_cost_gap has current raster and vector exports",
+    "passed": true
+  },
+  {
+    "check": "S24_R9_cd_spread has current raster and vector exports",
+    "passed": true
   }
 ]
