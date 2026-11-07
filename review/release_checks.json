@@ -94,5 +94,541 @@
   {
     "check": "S24_R3_nominal_vs_shadow has matching raster and vector files",
     "passed": true
+  },
+  {
+    "check": "S23_R3_eve_outlier_test has matching raster and vector files",
+    "passed": true
+  },
+  {
+    "check": "prudential keys unique",
+    "passed": true
+  },
+  {
+    "check": "capital dates are next month reports",
+    "passed": true
+  },
+  {
+    "check": "legacy core is never relabelled Tier 1",
+    "passed": true
+  },
+  {
+    "check": "wartime missing reports remain missing",
+    "passed": true
+  },
+  {
+    "check": "2018 compact code-name worksheets retained",
+    "passed": true
+  },
+  {
+    "check": "source conflicts excluded from headroom",
+    "passed": true
+  },
+  {
+    "check": "minimum transition dates use economic month",
+    "passed": true
+  },
+  {
+    "check": "capital join preserves base observations",
+    "passed": true
+  },
+  {
+    "check": "all latest banks have positive observed Tier 1",
+    "passed": true
+  },
+  {
+    "check": "Ukreximbank exact-date Tier 1 and units",
+    "passed": true
+  },
+  {
+    "check": "duration screen uses positive Tier 1",
+    "passed": true
+  },
+  {
+    "check": "loss flags match Tier 1 threshold",
+    "passed": true
+  },
+  {
+    "check": "controlled validation uses a common sample",
+    "passed": true
+  },
+  {
+    "check": "capital interaction multiplicity correction is conservative",
+    "passed": true
+  },
+  {
+    "check": "unavailable interaction inference is explicitly labelled",
+    "passed": true
+  },
+  {
+    "check": "IRRBB_Stress_Test.xlsx Tier 1 bank 46",
+    "passed": true
+  },
+  {
+    "check": "IRRBB_Stress_Test.xlsx Tier 1 bank 6",
+    "passed": true
+  },
+  {
+    "check": "IRRBB_Stress_Test.xlsx Tier 1 bank 2",
+    "passed": true
+  },
+  {
+    "check": "IRRBB_Stress_Test.xlsx Tier 1 bank 36",
+    "passed": true
+  },
+  {
+    "check": "IRRBB_Stress_Test.xlsx Tier 1 bank 115",
+    "passed": true
+  },
+  {
+    "check": "IRRBB_Stress_Test.xlsx Tier 1 bank 242",
+    "passed": true
+  },
+  {
+    "check": "IRRBB_Stress_Test.xlsx Tier 1 bank 274",
+    "passed": true
+  },
+  {
+    "check": "IRRBB_Stress_Test.xlsx Tier 1 bank 136",
+    "passed": true
+  },
+  {
+    "check": "IRRBB_Stress_Test.xlsx Tier 1 bank 272",
+    "passed": true
+  },
+  {
+    "check": "IRRBB_Stress_Test.xlsx Tier 1 bank 296",
+    "passed": true
+  },
+  {
+    "check": "IRRBB_Stress_Test.xlsx Tier 1 bank 171",
+    "passed": true
+  },
+  {
+    "check": "IRRBB_Stress_Test.xlsx Tier 1 bank 297",
+    "passed": true
+  },
+  {
+    "check": "IRRBB_Stress_Test.xlsx Tier 1 bank 106",
+    "passed": true
+  },
+  {
+    "check": "IRRBB_Stress_Test.xlsx Tier 1 bank 88",
+    "passed": true
+  },
+  {
+    "check": "IRRBB_Stress_Test.xlsx Tier 1 bank 298",
+    "passed": true
+  },
+  {
+    "check": "IRRBB_Stress_Test.xlsx Tier 1 bank 62",
+    "passed": true
+  },
+  {
+    "check": "IRRBB_Stress_Test.xlsx Tier 1 bank 96",
+    "passed": true
+  },
+  {
+    "check": "IRRBB_Stress_Test.xlsx Tier 1 bank 305",
+    "passed": true
+  },
+  {
+    "check": "IRRBB_Stress_Test.xlsx Tier 1 bank 105",
+    "passed": true
+  },
+  {
+    "check": "IRRBB_Stress_Test.xlsx Tier 1 bank 295",
+    "passed": true
+  },
+  {
+    "check": "IRRBB_Stress_Test.xlsx Tier 1 bank 392",
+    "passed": true
+  },
+  {
+    "check": "IRRBB_Stress_Test.xlsx Tier 1 bank 270",
+    "passed": true
+  },
+  {
+    "check": "IRRBB_Stress_Test.xlsx Tier 1 bank 29",
+    "passed": true
+  },
+  {
+    "check": "IRRBB_Stress_Test.xlsx Tier 1 bank 91",
+    "passed": true
+  },
+  {
+    "check": "IRRBB_Stress_Test.xlsx Tier 1 bank 286",
+    "passed": true
+  },
+  {
+    "check": "IRRBB_Stress_Test.xlsx Tier 1 bank 386",
+    "passed": true
+  },
+  {
+    "check": "IRRBB_Stress_Test.xlsx Tier 1 bank 142",
+    "passed": true
+  },
+  {
+    "check": "IRRBB_Stress_Test.xlsx Tier 1 bank 153",
+    "passed": true
+  },
+  {
+    "check": "IRRBB_Stress_Test.xlsx Tier 1 bank 407",
+    "passed": true
+  },
+  {
+    "check": "IRRBB_Stress_Test.xlsx Tier 1 bank 251",
+    "passed": true
+  },
+  {
+    "check": "IRRBB_Stress_Test.xlsx Tier 1 bank 455",
+    "passed": true
+  },
+  {
+    "check": "IRRBB_Stress_Test.xlsx Tier 1 bank 389",
+    "passed": true
+  },
+  {
+    "check": "IRRBB_Stress_Test.xlsx Tier 1 bank 288",
+    "passed": true
+  },
+  {
+    "check": "IRRBB_Stress_Test.xlsx Tier 1 bank 133",
+    "passed": true
+  },
+  {
+    "check": "IRRBB_Stress_Test.xlsx Tier 1 bank 231",
+    "passed": true
+  },
+  {
+    "check": "IRRBB_Stress_Test.xlsx Tier 1 bank 113",
+    "passed": true
+  },
+  {
+    "check": "IRRBB_Stress_Test.xlsx Tier 1 bank 320",
+    "passed": true
+  },
+  {
+    "check": "IRRBB_Stress_Test.xlsx Tier 1 bank 387",
+    "passed": true
+  },
+  {
+    "check": "IRRBB_Stress_Test.xlsx Tier 1 bank 240",
+    "passed": true
+  },
+  {
+    "check": "IRRBB_Stress_Test.xlsx Tier 1 bank 101",
+    "passed": true
+  },
+  {
+    "check": "IRRBB_Stress_Test.xlsx Tier 1 bank 128",
+    "passed": true
+  },
+  {
+    "check": "IRRBB_Stress_Test.xlsx Tier 1 bank 694",
+    "passed": true
+  },
+  {
+    "check": "IRRBB_Stress_Test.xlsx Tier 1 bank 43",
+    "passed": true
+  },
+  {
+    "check": "IRRBB_Stress_Test.xlsx Tier 1 bank 331",
+    "passed": true
+  },
+  {
+    "check": "IRRBB_Stress_Test.xlsx Tier 1 bank 123",
+    "passed": true
+  },
+  {
+    "check": "IRRBB_Stress_Test.xlsx Tier 1 bank 395",
+    "passed": true
+  },
+  {
+    "check": "IRRBB_Stress_Test.xlsx Tier 1 bank 205",
+    "passed": true
+  },
+  {
+    "check": "IRRBB_Stress_Test.xlsx Tier 1 bank 394",
+    "passed": true
+  },
+  {
+    "check": "IRRBB_Stress_Test.xlsx Tier 1 bank 329",
+    "passed": true
+  },
+  {
+    "check": "IRRBB_Stress_Test.xlsx Tier 1 bank 95",
+    "passed": true
+  },
+  {
+    "check": "IRRBB_Stress_Test.xlsx Tier 1 bank 146",
+    "passed": true
+  },
+  {
+    "check": "IRRBB_Stress_Test.xlsx Tier 1 bank 553",
+    "passed": true
+  },
+  {
+    "check": "IRRBB_Stress_Test.xlsx Tier 1 bank 49",
+    "passed": true
+  },
+  {
+    "check": "IRRBB_Stress_Test.xlsx Tier 1 bank 695",
+    "passed": true
+  },
+  {
+    "check": "IRRBB_Stress_Test.xlsx Tier 1 bank 72",
+    "passed": true
+  },
+  {
+    "check": "IRRBB_Stress_Test.xlsx Tier 1 bank 290",
+    "passed": true
+  },
+  {
+    "check": "IRRBB_Stress_Test.xlsx Tier 1 bank 313",
+    "passed": true
+  },
+  {
+    "check": "IRRBB_Stress_Test.xlsx Tier 1 bank 311",
+    "passed": true
+  },
+  {
+    "check": "IRRBB_Stress_Test.xlsx Tier 1 bank 129",
+    "passed": true
+  },
+  {
+    "check": "Bank_Repricing_Funding_Tool.xlsx Tier 1 bank 46",
+    "passed": true
+  },
+  {
+    "check": "Bank_Repricing_Funding_Tool.xlsx Tier 1 bank 6",
+    "passed": true
+  },
+  {
+    "check": "Bank_Repricing_Funding_Tool.xlsx Tier 1 bank 2",
+    "passed": true
+  },
+  {
+    "check": "Bank_Repricing_Funding_Tool.xlsx Tier 1 bank 36",
+    "passed": true
+  },
+  {
+    "check": "Bank_Repricing_Funding_Tool.xlsx Tier 1 bank 115",
+    "passed": true
+  },
+  {
+    "check": "Bank_Repricing_Funding_Tool.xlsx Tier 1 bank 242",
+    "passed": true
+  },
+  {
+    "check": "Bank_Repricing_Funding_Tool.xlsx Tier 1 bank 274",
+    "passed": true
+  },
+  {
+    "check": "Bank_Repricing_Funding_Tool.xlsx Tier 1 bank 136",
+    "passed": true
+  },
+  {
+    "check": "Bank_Repricing_Funding_Tool.xlsx Tier 1 bank 272",
+    "passed": true
+  },
+  {
+    "check": "Bank_Repricing_Funding_Tool.xlsx Tier 1 bank 296",
+    "passed": true
+  },
+  {
+    "check": "Bank_Repricing_Funding_Tool.xlsx Tier 1 bank 171",
+    "passed": true
+  },
+  {
+    "check": "Bank_Repricing_Funding_Tool.xlsx Tier 1 bank 297",
+    "passed": true
+  },
+  {
+    "check": "Bank_Repricing_Funding_Tool.xlsx Tier 1 bank 106",
+    "passed": true
+  },
+  {
+    "check": "Bank_Repricing_Funding_Tool.xlsx Tier 1 bank 88",
+    "passed": true
+  },
+  {
+    "check": "Bank_Repricing_Funding_Tool.xlsx Tier 1 bank 298",
+    "passed": true
+  },
+  {
+    "check": "Bank_Repricing_Funding_Tool.xlsx Tier 1 bank 62",
+    "passed": true
+  },
+  {
+    "check": "Bank_Repricing_Funding_Tool.xlsx Tier 1 bank 96",
+    "passed": true
+  },
+  {
+    "check": "Bank_Repricing_Funding_Tool.xlsx Tier 1 bank 305",
+    "passed": true
+  },
+  {
+    "check": "Bank_Repricing_Funding_Tool.xlsx Tier 1 bank 105",
+    "passed": true
+  },
+  {
+    "check": "Bank_Repricing_Funding_Tool.xlsx Tier 1 bank 295",
+    "passed": true
+  },
+  {
+    "check": "Bank_Repricing_Funding_Tool.xlsx Tier 1 bank 392",
+    "passed": true
+  },
+  {
+    "check": "Bank_Repricing_Funding_Tool.xlsx Tier 1 bank 270",
+    "passed": true
+  },
+  {
+    "check": "Bank_Repricing_Funding_Tool.xlsx Tier 1 bank 29",
+    "passed": true
+  },
+  {
+    "check": "Bank_Repricing_Funding_Tool.xlsx Tier 1 bank 91",
+    "passed": true
+  },
+  {
+    "check": "Bank_Repricing_Funding_Tool.xlsx Tier 1 bank 286",
+    "passed": true
+  },
+  {
+    "check": "Bank_Repricing_Funding_Tool.xlsx Tier 1 bank 386",
+    "passed": true
+  },
+  {
+    "check": "Bank_Repricing_Funding_Tool.xlsx Tier 1 bank 142",
+    "passed": true
+  },
+  {
+    "check": "Bank_Repricing_Funding_Tool.xlsx Tier 1 bank 153",
+    "passed": true
+  },
+  {
+    "check": "Bank_Repricing_Funding_Tool.xlsx Tier 1 bank 407",
+    "passed": true
+  },
+  {
+    "check": "Bank_Repricing_Funding_Tool.xlsx Tier 1 bank 251",
+    "passed": true
+  },
+  {
+    "check": "Bank_Repricing_Funding_Tool.xlsx Tier 1 bank 455",
+    "passed": true
+  },
+  {
+    "check": "Bank_Repricing_Funding_Tool.xlsx Tier 1 bank 389",
+    "passed": true
+  },
+  {
+    "check": "Bank_Repricing_Funding_Tool.xlsx Tier 1 bank 288",
+    "passed": true
+  },
+  {
+    "check": "Bank_Repricing_Funding_Tool.xlsx Tier 1 bank 133",
+    "passed": true
+  },
+  {
+    "check": "Bank_Repricing_Funding_Tool.xlsx Tier 1 bank 231",
+    "passed": true
+  },
+  {
+    "check": "Bank_Repricing_Funding_Tool.xlsx Tier 1 bank 113",
+    "passed": true
+  },
+  {
+    "check": "Bank_Repricing_Funding_Tool.xlsx Tier 1 bank 320",
+    "passed": true
+  },
+  {
+    "check": "Bank_Repricing_Funding_Tool.xlsx Tier 1 bank 387",
+    "passed": true
+  },
+  {
+    "check": "Bank_Repricing_Funding_Tool.xlsx Tier 1 bank 240",
+    "passed": true
+  },
+  {
+    "check": "Bank_Repricing_Funding_Tool.xlsx Tier 1 bank 101",
+    "passed": true
+  },
+  {
+    "check": "Bank_Repricing_Funding_Tool.xlsx Tier 1 bank 128",
+    "passed": true
+  },
+  {
+    "check": "Bank_Repricing_Funding_Tool.xlsx Tier 1 bank 694",
+    "passed": true
+  },
+  {
+    "check": "Bank_Repricing_Funding_Tool.xlsx Tier 1 bank 43",
+    "passed": true
+  },
+  {
+    "check": "Bank_Repricing_Funding_Tool.xlsx Tier 1 bank 331",
+    "passed": true
+  },
+  {
+    "check": "Bank_Repricing_Funding_Tool.xlsx Tier 1 bank 123",
+    "passed": true
+  },
+  {
+    "check": "Bank_Repricing_Funding_Tool.xlsx Tier 1 bank 395",
+    "passed": true
+  },
+  {
+    "check": "Bank_Repricing_Funding_Tool.xlsx Tier 1 bank 205",
+    "passed": true
+  },
+  {
+    "check": "Bank_Repricing_Funding_Tool.xlsx Tier 1 bank 394",
+    "passed": true
+  },
+  {
+    "check": "Bank_Repricing_Funding_Tool.xlsx Tier 1 bank 329",
+    "passed": true
+  },
+  {
+    "check": "Bank_Repricing_Funding_Tool.xlsx Tier 1 bank 95",
+    "passed": true
+  },
+  {
+    "check": "Bank_Repricing_Funding_Tool.xlsx Tier 1 bank 146",
+    "passed": true
+  },
+  {
+    "check": "Bank_Repricing_Funding_Tool.xlsx Tier 1 bank 553",
+    "passed": true
+  },
+  {
+    "check": "Bank_Repricing_Funding_Tool.xlsx Tier 1 bank 49",
+    "passed": true
+  },
+  {
+    "check": "Bank_Repricing_Funding_Tool.xlsx Tier 1 bank 695",
+    "passed": true
+  },
+  {
+    "check": "Bank_Repricing_Funding_Tool.xlsx Tier 1 bank 72",
+    "passed": true
+  },
+  {
+    "check": "Bank_Repricing_Funding_Tool.xlsx Tier 1 bank 290",
+    "passed": true
+  },
+  {
+    "check": "Bank_Repricing_Funding_Tool.xlsx Tier 1 bank 313",
+    "passed": true
+  },
+  {
+    "check": "Bank_Repricing_Funding_Tool.xlsx Tier 1 bank 311",
+    "passed": true
+  },
+  {
+    "check": "Bank_Repricing_Funding_Tool.xlsx Tier 1 bank 129",
+    "passed": true
   }
 ]
