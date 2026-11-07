@@ -50,7 +50,5 @@ print(done)
 
 if (any(done == "error")) stop("Pipeline failed; inspect the step log. Existing outputs may be stale.")
 if (identical(Sys.getenv("THESIS_REVIEW", "true"), "true")) {
-  py <- Sys.getenv("THESIS_PYTHON", "python3")
-  code <- system2(py, c(shQuote(file.path(.root, "15_robustness_review.py")), shQuote(.root)))
-  if (code != 0) stop("Robustness supplement failed")
+  run_thesis_python(file.path(.root, "15_robustness_review.py"), .root)
 }

@@ -13,9 +13,24 @@ jobs:
       - name: Compile Python source
         run: python -m compileall -q .
   r-syntax:
-    runs-on: ubuntu-latest
+    # The R/Python boundary must work on the Windows platform used by the author.
+    runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        id: python
+        with:
+          python-version: '3.12'
       - uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: '4.4.3'
       - name: Parse R source without executing models
-        run: Rscript -e 'for (f in list.files(pattern="[.]R$", recursive=TRUE)) parse(f, encoding="UTF-8")'
+        shell: Rscript {0}
+        run: |
+          for (f in list.files(pattern="[.]R$", recursive=TRUE)) parse(f, encoding="UTF-8")
+      - name: Exercise Python bridge on Windows paths
+        shell: Rscript {0}
+        env:
+          TEST_PYTHON: ${{ steps.python.outputs.python-path }}
+        run: |
+          source("scripts/test_python_bridge.R", encoding="UTF-8")
