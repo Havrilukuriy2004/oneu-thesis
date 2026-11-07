@@ -341,6 +341,12 @@ blk("R7 правдоподібність", {
   fact("R7_ratio", sprintf("залишки на кор. рахунках / розрахункові грошові резерви: медіана %.2f за 2023–2026", median(sx[month >= as.Date("2023-03-01"), ratio], na.rm = TRUE)))
 })
 
+# ------------------------------ R9. additional funding-cost views -------------
+blk("R9 додаткові графіки", {
+  source(file.path(PROJECT_DIR, "utils_section23_24_figures.R"), encoding = "UTF-8")
+  add_section24_figures(PRODSFC, SHADOW, MAC)
+})
+
 # ------------------------------ exports for the Excel ----------------------------
 blk("Excel-входи", {
   latest <- max(PRODSFC$month)
