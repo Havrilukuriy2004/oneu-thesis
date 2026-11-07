@@ -1,0 +1,10 @@
+{
+  "section23_new_figures": 3,
+  "section24_new_figures": 3,
+  "scenario_figure_repaired": true,
+  "source": "R modules 10 and 11 rerun; upstream LP coefficients inherited",
+  "documents": [
+    "section2_reviewed.docx",
+    "Thesis_code_review.docx"
+  ]
+}
