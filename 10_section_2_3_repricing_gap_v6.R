@@ -277,10 +277,18 @@ blk("R5 сценарії", {
                             `Виявлений (асиметричні β), % ЧПД` = round(nii_asym_pct, 2))]
   save_tab(y1, "S23_R5_scenarios_12m.csv", "R5_12m")
   p <- ggplot(melt(sc[, .(shock_bp, month_h, `Договірний` = nii_contract_pct, `Виявлений (асиметричні β)` = nii_asym_pct)], id.vars = c("shock_bp", "month_h")),
-              aes(month_h, value, colour = factor(shock_bp), linetype = variable)) + geom_hline(yintercept = 0, linewidth = .3) + geom_line(linewidth = .6) +
+              aes(month_h, value, colour = factor(shock_bp), linetype = factor(shock_bp), group = shock_bp)) +
+    facet_wrap(~variable, ncol = 1) + geom_hline(yintercept = 0, linewidth = .3) + geom_line(linewidth = .6) +
+    scale_x_continuous(breaks = c(1, 6, 12, 18, 24)) +
     labs(title = "Накопичена зміна ЧПД банківської системи за сценаріями облікової ставки", subtitle = "% річного ЧПД; баланс постійний",
          x = "Місяців після зміни", y = "% ЧПД", colour = "Шок, б.п.", linetype = NULL, caption = CAP) + theme_thesis()
-  save_fig(p, "S23_R5_scenarios.png", 8.5, 5)
+  save_fig(p, "S23_R5_scenarios.png", 8.5, 7)
+})
+
+# ------------------------------ R9. additional risk views ---------------------
+blk("R9 додаткові графіки", {
+  source(file.path(PROJECT_DIR, "utils_section23_24_figures.R"), encoding = "UTF-8")
+  add_section23_figures(B, ITEMS, BP, CP, Sr, Sc, h12, latest)
 })
 
 # ------------------------------ exports for the dynamic Excel ----------------
