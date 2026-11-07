@@ -10,6 +10,8 @@ output_nbu/bank_excel/Bank_Repricing_Funding_Tool.xlsx. Усі показник�
 Потрібно: pip3 install openpyxl
 """
 import csv, os, sys, datetime as dt
+from pathlib import Path
+from capital_inputs import enrich_totals
 from collections import defaultdict
 from openpyxl import Workbook
 from openpyxl.styles import Font, Alignment, Border, Side, PatternFill
@@ -50,6 +52,7 @@ def clean_name(s):
 items = rd(os.path.join(T23, "S23_items_parameters.csv"))
 betas = rd(os.path.join(T23, "S23_beta_paths.csv"))
 totals = rd(os.path.join(T23, "S23_bank_totals_latest.csv"))
+totals = enrich_totals(totals, Path(OUT_ROOT).resolve().parent)
 bitems = rd(os.path.join(T23, "S23_bank_items_latest.csv"))
 hist23 = rd(os.path.join(T23, "S23_bank_history_60m.csv"))
 prods = rd(os.path.join(T24, "S24_bank_products_latest.csv"))
@@ -258,10 +261,10 @@ D2 = sheet("Д2", "808080")
 titles(D1, ["Д1. Дані банків на " + latest_txt + " (вхід для формул; не редагувати)"],
        "(залишки — млн грн; ставки — частки; дюрації — роки)")
 D1_COLS = ["nkb", "bank", "owner", "TA", "EQ", "NII12", "D_hhdem_b", "D_corpdem_b"] + [f"U_{i}" for i in ITEM_CODES] + [f"F_{i}" for i in ITEM_CODES] \
-          + [f"S_{p}_{c}" for p, c in PRODS] + [f"R_{p}_{c}" for p, c in PRODS]
+          + [f"S_{p}_{c}" for p, c in PRODS] + [f"R_{p}_{c}" for p, c in PRODS] + ["T1", "capital_date", "headroom", "LCR", "NSFR"]
 D1_LAB = ["Код банку", "Банк", "Власність", "Активи", "Капітал", "ЧПД за 12 міс.", "Дюрація коштів ФО на вимогу (поведінкова), р.", "Дюрація коштів СГ на вимогу (поведінкова), р."] \
          + [f"{r['label']}: гривня" for r in items] + [f"{r['label']}: валюта" for r in items] \
-         + [f"{PROD_UA[p]}, {CCY_UA[c]}: залишок" for p, c in PRODS] + [f"{PROD_UA[p]}, {CCY_UA[c]}: ставка" for p, c in PRODS]
+         + [f"{PROD_UA[p]}, {CCY_UA[c]}: залишок" for p, c in PRODS] + [f"{PROD_UA[p]}, {CCY_UA[c]}: ставка" for p, c in PRODS] + ["Фактичний Tier 1, млн грн", "Звітна дата капіталу", "Запас до загального мінімуму, в.п.", "LCR за всіма валютами, %", "NSFR, %"]
 for j, (k, lab) in enumerate(zip(D1_COLS, D1_LAB)):
     put(D1, 3, j + 1, k, A9, al=CEN, border=BOX)
     put(D1, 4, j + 1, lab, al=CEN, border=BOX)
@@ -273,6 +276,7 @@ for i, b in enumerate(banks):
     vals = [b["nkb"], clean_name(b["bank"]), OWN.get(b["owner"], b["owner"] or "…"), num(b["TA"]), num(b["EQ"]), num(b["NII12"]), num(b["D_hhdem_b"]), num(b["D_corpdem_b"])]
     vals += [stock[(b["nkb"], it, "U")] for it in ITEM_CODES] + [stock[(b["nkb"], it, "F")] for it in ITEM_CODES]
     vals += [pst[(b["nkb"], p, c)] for p, c in PRODS] + [prt.get((b["nkb"], p, c), 0.0) for p, c in PRODS]
+    vals += [num(b.get("tier1_mn"), None), b.get("report_date"), num(b.get("headroom_total_min_pp"), None), num(b.get("lcr_all_pct"), None), num(b.get("nsfr_pct"), None)]
     for j, v in enumerate(vals):
         cell = put(D1, r, j + 1, v)
         k = D1_COLS[j]
@@ -374,7 +378,7 @@ SW = [
     ("sw_src", "Джерело переоцінки ставок", src_list[0], None, "Виявлений — передача з п. 2.2 (β_h панельних LP); договірний — за строками (λ)."),
     ("sw_eveshock", "Шок для економічної вартості капіталу (EVE), б.п.", 200, NUM0, "Базельський стандартний паралельний шок — 200 б.п."),
     ("sw_nmd", "Кошти на вимогу в EVE", nmd_list[0], None, "Поведінкова — дюрація депозитної франшизи з п. 2.1 (D5) за поточної облікової; договірна — 1 міс."),
-    ("sw_sot", "Поріг тесту на викид (SOT), частка капіталу", 0.15, PCT1, "BCBS (2016): |ΔEVE| > 15 % капіталу за найгіршого з шоків ± (модель лінійна, тож |ΔEVE| однаковий)."),
+    ("sw_sot", "Поріг скринінгу втрати, частка Tier 1", 0.15, PCT1, "Орієнтир BCBS 15 % Tier 1. Тут перевіряється втрата за обраним паралельним шоком; повні сценарії у IRRBB_Stress_Test.xlsx."),
     ("sw_date", "Нормативи резервування станом на", dt.date.fromisoformat(RRW[-1][0]), DATEF, "Оберіть дату рішення з таблиці 12.3."),
     ("sw_s92", "Частка строкових депозитів ФО до 92 днів", par24.get("share_hh_term_le92", 0.3), PCT1, "У даних НБУ строки не розщеплено — припущення."),
     ("sw_cov", "Покриття нормативу бенчмарк-ОВДП", "Так", None, "Ні — увесь норматив тримається на кореспондентському рахунку."),
@@ -545,16 +549,16 @@ IT1_HDR = KF0 + 18
 IT1_R0 = IT1_HDR + 4                     # first data row after header (2 rows top+labels) + numbers + spacer
 KF = [
     ("Активи, млн грн", f"={row('TA')}", NUM1),
-    ("Капітал, млн грн", f"={row('EQ')}", NUM1),
+    ("Фактичний Tier 1, млн грн", f"=IF({row('T1')}>0,{row('T1')},NA())", NUM1),
     ("ЧПД за останні 12 міс., млн грн", f"={row('NII12')}", NUM1),
     ("Розрив переоцінки 12 міс. (обране джерело), % активів", f"=SUM(F{IT1_R0}:F{IT1_R0 + NI - 1})/{row('TA')}", PCT1),
     ("Розрив переоцінки 12 міс. (договірний), % активів", f"=SUM(H{IT1_R0}:H{IT1_R0 + NI - 1})/{row('TA')}", PCT1),
     ("ΔЧПД за перший рік від шоку, млн грн", f"=SUM(J{IT1_R0}:J{IT1_R0 + NI - 1})", NUM1),
     ("ΔЧПД, % річного ЧПД", f'=IFERROR(B{KF0 + 5}/{row("NII12")},"…")', PCT1),
-    ("ΔЧПД, % капіталу", f'=IFERROR(B{KF0 + 5}/{row("EQ")},"…")', PCT1),
+    ("ΔЧПД, % Tier 1", f'=IFERROR(IF({row("T1")}>0,B{KF0 + 5}/{row("T1")},"…"),"…")', PCT1),
     ("ΔEVE від шоку для EVE, млн грн", f"=SUM(L{IT1_R0}:L{IT1_R0 + NI - 1})", NUM1),
-    ("ΔEVE, % капіталу", f'=IFERROR(B{KF0 + 8}/{row("EQ")},"…")', PCT1),
-    ("Тест на викид (SOT) порушено?", f'=IF(ISNUMBER(B{KF0 + 9}),IF(ABS(B{KF0 + 9})>sw_sot,"так","ні"),"…")', None),
+    ("ΔEVE, % Tier 1", f'=IFERROR(IF({row("T1")}>0,B{KF0 + 8}/{row("T1")},"…"),"…")', PCT1),
+    ("Втрата перевищує поріг скринінгу?", f'=IF(ISNUMBER(B{KF0 + 9}),IF(-B{KF0 + 9}>sw_sot,"так","ні"),"…")', None),
     ("Номінальна вартість депозитів, %", None, PCT2),
     ("Економічна вартість депозитів (з резервами і ФГВФО), %", None, PCT2),
     ("Неявний податок на депозити, в.п.", None, PCT2),
@@ -604,11 +608,11 @@ for lab, rng, bold in [("Разом активи", (IT1_R0, IT1_R0 + na - 1), Fa
     for c in (6, 8, 10, 12):
         put(S1, q, c, f"=SUM({CL(c)}{rng[0]}:{CL(c)}{rng[1]})", f, NUM1, RIGHT, TOPB)
     q += 1
-put(S1, q, 1, "у % активів (розрив), % ЧПД (ΔЧПД), % капіталу (ΔEVE)", A10I, al=LEFT_NW)
+put(S1, q, 1, "у % активів (розрив), % ЧПД (ΔЧПД), % Tier 1 (ΔEVE)", A10I, al=LEFT_NW)
 put(S1, q, 6, f"=F{q - 1}/{row('TA')}", A10I, PCT1, RIGHT)
 put(S1, q, 8, f"=H{q - 1}/{row('TA')}", A10I, PCT1, RIGHT)
 put(S1, q, 10, f'=IFERROR(J{q - 1}/{row("NII12")},"…")', A10I, PCT1, RIGHT)
-put(S1, q, 12, f'=IFERROR(L{q - 1}/{row("EQ")},"…")', A10I, PCT1, RIGHT)
+put(S1, q, 12, f'=IFERROR(L{q - 1}/{row("T1")},"…")', A10I, PCT1, RIGHT)
 IT1_END = q
 # ---- table 12.1.2 products
 r = IT1_END + 2
@@ -681,9 +685,9 @@ foot(S5, H5_R1 + 1, ["#Н/Д (порожні точки на графіках) �
 r = titles(S2, ["12. Інструмент аналізу банку", "12.2. Розрив переоцінки і вартість фондування всіх банків за обраних перемикачів"],
            "(перемикачі — на аркуші 12.1; фільтр і сортування — стрілками в шапці)")
 labs = ["Код", "Банк", "Власність", "Активи, млн грн", "Розрив 12 міс. (договірний), % активів", "Розрив 12 міс. (обране джерело), % активів", "ΔЧПД за 1-й рік, % ЧПД",
-        "ΔEVE, % капіталу", "SOT порушено", "Номінальна вартість депозитів, %", "Економічна вартість депозитів, %", "Неявний податок, в.п.", "Ранг за розривом (1 = найбільший)"]
+        "ΔEVE, % Tier 1", "SOT порушено", "Номінальна вартість депозитів, %", "Економічна вартість депозитів, %", "Неявний податок, в.п.", "Ранг за розривом (1 = найбільший)"]
 R2_0 = header(S2, r + 1, 1, labs, height=66)
-TAc, EQc, NIIc = CL(COL["TA"]), CL(COL["EQ"]), CL(COL["NII12"])
+TAc, EQc, NIIc = CL(COL["TA"]), CL(COL["T1"]), CL(COL["NII12"])
 dh = (ITEM_CODES.index("hh_dem"), ITEM_CODES.index("corp_dem"))
 for i in range(len(banks)):
     q = R2_0 + i; d = R1 + i
@@ -699,7 +703,7 @@ for i in range(len(banks)):
         f"'12.4'!$C${IT_R0 + j}*('Д1'!{CL(COL['U_' + ITEM_CODES[j]])}{d}+'Д1'!{CL(COL['F_' + ITEM_CODES[j]])}{d})*('Д1'!{CL(COL[dcol])}{d}-'12.4'!$F${IT_R0 + j})"
         for j, dcol in zip(dh, ("D_hhdem_b", "D_corpdem_b")))
     put(S2, q, 8, f'=IFERROR(-sw_eveshock/10000*(SUMPRODUCT({Ur}+{Fr},{VEC[3]})+IF(sw_nmd="Поведінкова дюрація",{adj},0))/\'Д1\'!{EQc}{d},"…")', fmt=PCT1, al=RIGHT)
-    put(S2, q, 9, f'=IF(ISNUMBER(H{q}),IF(ABS(H{q})>sw_sot,"так","ні"),"…")', al=CEN)
+    put(S2, q, 9, f'=IF(ISNUMBER(H{q}),IF(-H{q}>sw_sot,"так","ні"),"…")', al=CEN)
     put(S2, q, 10, f'=IF(SUM({Sr})>0,SUMPRODUCT({Sr},{Rr})/SUM({Sr}),"…")', fmt=PCT2, al=RIGHT)
     put(S2, q, 11, f'=IF(SUM({Sr})>0,(SUMPRODUCT({Sr},{Rr})+SUMPRODUCT({Sr},{VEC["p_0"]}))/SUM({Sr}),"…")', fmt=PCT2, al=RIGHT)
     put(S2, q, 12, f'=IFERROR(K{q}-J{q},"…")', fmt=PCT2, al=RIGHT)
