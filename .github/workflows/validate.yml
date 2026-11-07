@@ -34,3 +34,8 @@ jobs:
           TEST_PYTHON: ${{ steps.python.outputs.python-path }}
         run: |
           source("scripts/test_python_bridge.R", encoding="UTF-8")
+      - name: Check black and white plot mappings
+        shell: Rscript {0}
+        run: |
+          install.packages(c("ggplot2", "rlang"), repos="https://cloud.r-project.org")
+          source("scripts/test_bw_plot_scales.R", encoding="UTF-8")
