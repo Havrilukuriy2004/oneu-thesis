@@ -1,0 +1,17 @@
+{
+  "refreshed_files": [
+    "S23_bank_totals_latest.csv",
+    "S23_R3_bank_gaps_latest.csv",
+    "S23_capital_latest.csv",
+    "S23_R3_by_ownership_latest.csv",
+    "S23_R3_system_monthly.csv"
+  ],
+  "numerators": "Inherited R results; no new contractual repricing data",
+  "denominator": "Observed exact-date Tier 1, million UAH; no book-equity substitution",
+  "positive_shock_screen": "Loss under +200 bp only; workbook 13 covers additional scenarios",
+  "latest_banks": 59,
+  "tier1_banks": 59,
+  "loss_flags_contract": 17,
+  "loss_flags_behavioural": 0,
+  "total_tier1_mn": 343663.8948470001
+}
