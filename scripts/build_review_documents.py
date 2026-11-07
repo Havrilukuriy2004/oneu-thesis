@@ -147,7 +147,7 @@ for paragraph in report.paragraphs:
   run=OxmlElement('w:r');text=OxmlElement('w:t');text.text='Переглянути джерело';run.append(text);link.append(run);paragraph._p.append(link)
 report.save(OUT/'Thesis_code_review.docx')
 # Markdown companion provides exact code/data locations for repository reviewers.
-md=['# Review of ONEU thesis code','','Status: needs revision before final submission. Numerical supplement completed; full R execution unavailable.','', '## New validation', '',z.to_csv(index=False),'','## Limitations register','',pd.DataFrame(FIXES,columns=['Section','Limitation','Treatment','Remaining']).to_csv(index=False)]
+md=['# Review of ONEU thesis code','','Status: see README.md for the current numerical execution scope and remaining identification limits.','', '## New validation', '',z.to_csv(index=False),'','## Limitations register','',pd.DataFrame(FIXES,columns=['Section','Limitation','Treatment','Remaining']).to_csv(index=False)]
 (ROOT/'REVIEW.md').write_text('\n'.join(md))
 
 # Native editable Word equations via Pandoc, while preserving the supplied document structure.
@@ -204,3 +204,7 @@ for i,(pattern,name) in enumerate([('Розділ 2*','section2_reviewed.docx'),
  d.save(OUT/name)
 (REV/'document_edits.json').write_text(json.dumps({'native_equations':math_count,'outputs':[p.name for p in OUT.glob('*.docx')]},indent=2))
 print('Documents built; native equations',math_count)
+# Include the newer charts when the numerical section scripts have produced them.
+if (ROOT/'output_nbu/section_2_3/figures/S23_R9_nii_contributions.png').exists():
+ from update_section23_24_documents import update
+ update(ROOT)
