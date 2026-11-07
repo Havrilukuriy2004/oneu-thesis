@@ -8,3 +8,6 @@ __pycache__/
 data_nbu/raw/
 data_nbu/parquet/*.rds
 review/equation.*
+
+.venv/
+review/inherited_capital_baseline/
