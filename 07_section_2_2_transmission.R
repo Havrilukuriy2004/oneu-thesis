@@ -183,6 +183,14 @@ B[, c_mshare := dep_core4_total / sum(dep_core4_total, na.rm = TRUE), by = month
 CHARS <- c(c_size = "Розмір (log активів)", c_demand = "Частка коштів на вимогу", c_liquid = "Частка ДС + ОВДП в активах",
            c_capital = "Капітал / активи", c_l2d = "Кредити / депозити", c_fx = "Частка валютних депозитів",
            c_mshare = "Частка ринку депозитів", c_state = "Державний банк", c_foreign = "Іноземний банк")
+# Supplemental characteristics do not shrink the baseline sample. P6 estimates each
+# observed characteristic separately, with bank and month FE and one-month lags.
+B[, `:=`(c_headroom = col_or_na(B, "headroom_total_min_pp"),
+         c_tier1_headroom = col_or_na(B, "headroom_tier1_min_pp"),
+         c_lcr = col_or_na(B, "lcr_all_pct"), c_nsfr = col_or_na(B, "nsfr_pct"))]
+CHARS <- c(CHARS, c_headroom = "Запас до загального мінімуму капіталу, в.п.",
+           c_tier1_headroom = "Запас Tier 1 до загального мінімуму, в.п.",
+           c_lcr = "LCR за всіма валютами", c_nsfr = "NSFR")
 for (v in names(CHARS)) {
   B[, (v) := shift(get(v)), by = nkb]
   x <- B[[v]]
@@ -245,8 +253,8 @@ fe2_dk_v <- function(d, y, x, L = NULL, tol = 1e-9, maxit = 500, vcov = c("dk", 
 
 # panel LP: cumulative response y_{t+h} − y_{t−1} to the shock at t
 lp_panel <- function(D, ov, spec = "base", shock = "di", H = H_MAX, nlag = N_LAG, chars = CTRL_CH, w = NULL, het = NULL, hs = 0:H,
-                     twoway = FALSE, ldy = TRUE, extra = NULL) {
-  keep <- intersect(unique(c("nkb", "month", ov, shock, "st_high", "st_war", "ms_p", "di_ant", "di_sur", MACRO, extra, chars, het, w)), names(D))
+                     twoway = FALSE, ldy = TRUE, extra = NULL, regime_filter = NULL) {
+  keep <- intersect(unique(c("nkb", "month", if (!is.null(regime_filter)) "capital_regime", ov, shock, "st_high", "st_war", "ms_p", "di_ant", "di_sur", MACRO, extra, chars, het, w)), names(D))
   D <- copy(D[, ..keep]); if (!"ms_p" %in% names(D)) D[, ms_p := NA_real_]
   setnames(D, c(ov, shock), c(".y", ".s")); setorder(D, nkb, month)
   D[, .dy := .y - shift(.y), by = nkb]
@@ -265,7 +273,9 @@ lp_panel <- function(D, ov, spec = "base", shock = "di", H = H_MAX, nlag = N_LAG
     terms <- setdiff(terms, ".s"); ctrl <- setdiff(ctrl, c(MACRO, paste0(".ls", seq_len(nlag)), "st_high", "st_war", "ms_p")) }
   rbindlist(lapply(hs, function(h) {
     D[, .lhs := shift(.y, h, type = "lead") - shift(.y, 1), by = nkb]
-    f <- if (twoway) fe2_dk_v(D, ".lhs", c(terms, setdiff(ctrl, terms)), L = max(h + 1L, 3L)) else fe_dk_v(D, ".lhs", c(terms, setdiff(ctrl, terms)), w = w, L = max(h + 1L, 3L))
+    if (!is.null(regime_filter)) D[, .regok := capital_regime == regime_filter & shift(capital_regime, 1) == regime_filter & shift(capital_regime, h, type = "lead") == regime_filter, by = nkb]
+    DD <- if (is.null(regime_filter)) D else D[.regok %in% TRUE]
+    f <- if (twoway) fe2_dk_v(DD, ".lhs", c(terms, setdiff(ctrl, terms)), L = max(h + 1L, 3L)) else fe_dk_v(DD, ".lhs", c(terms, setdiff(ctrl, terms)), w = w, L = max(h + 1L, 3L))
     if (is.null(f)) return(NULL)
     tt <- intersect(terms, names(f$b))
     out <- data.table(h = h, term = tt, b = f$b[tt], se = sqrt(diag(f$V)[tt]), n = f$n, nb = f$nb)
@@ -420,8 +430,13 @@ save_tab(dcast(TST, label + spec ~ paste0("h", h), value.var = c("diff", "p_diff
 t0 <- Sys.time()
 HET_OUT <- intersect(c("cod4", "hh_term", "corp_term", "hh_demand", "y_le", "y_iea", "nim", "q_dep_term", "q_dep_demand", "q_loans_le"), OUTS$key)
 het_one <- rbindlist(lapply(HET_OUT, function(k) rbindlist(lapply(paste0("z_", names(CHARS)), function(z) {
-  r <- lp_panel(B, paste0("o_", k), spec = "het", het = z, chars = setdiff(CTRL_CH, z), hs = intersect(c(0, 1, 3, 6, 9, 12, 18, 24), 0:H_MAX), twoway = TRUE)
-  if (is.null(r) || !nrow(r)) return(NULL); r[term != ".s"][, `:=`(key = k, char = sub("^z_", "", z))] }))), fill = TRUE)
+  regimes <- if (z %in% paste0("z_", c("c_headroom", "c_tier1_headroom", "c_lcr", "c_nsfr"))) c("legacy", "three_tier") else "pooled"
+  rbindlist(lapply(regimes, function(reg) {
+    r <- lp_panel(B, paste0("o_", k), spec = "het", het = z, chars = setdiff(CTRL_CH, z), hs = intersect(c(0, 1, 3, 6, 9, 12, 18, 24), 0:H_MAX), twoway = TRUE, regime_filter = if (reg == "pooled") NULL else reg)
+    if (is.null(r) || !nrow(r)) return(NULL)
+    r[term != ".s"][, `:=`(key = k, char = sub("^z_", "", z), capital_sample = reg)]
+  }), fill = TRUE)
+}))), fill = TRUE)
 het_joint <- rbindlist(lapply(HET_OUT, function(k) {
   zs <- paste0("z_", c("c_size", "c_demand", "c_liquid", "c_capital", "c_l2d", "c_state", "c_foreign"))
   r <- lp_panel(B, paste0("o_", k), spec = "het", het = zs, chars = character(), hs = intersect(c(3, 6, 12, 24), 0:H_MAX), twoway = TRUE)
