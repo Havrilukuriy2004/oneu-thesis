@@ -1,6 +1,6 @@
 # Review of ONEU thesis code
 
-Status: needs revision before final submission. Numerical supplement completed; full R execution unavailable.
+Status: R modules 10 and 11, the numerical Python supplement and both workbook generators completed. Six figures added and the blank scenario chart repaired. Other R models remain inherited; the full driver was not rerun.
 
 ## New validation
 
