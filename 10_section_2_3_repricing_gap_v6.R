@@ -23,7 +23,7 @@
 #        long-run     S^θ    = Σ_A A·θ_A − Σ_L L·θ_L (θ: bank ECM, shrunk to the mean group)
 #      ΔNII over 12 months for a permanent ±100 bp: Σ_{m=1..12} S(m)·TA·Δi/12 (UAH, % NII, % equity)
 #      ΔEVE for ±200 bp: −Δi·(Σ D_A·A − Σ D_L·L); contractual (demand deposits D = 0) vs behavioural
-#      (deposit franchise duration, 04/D5); supervisory outlier test |ΔEVE| > 15% of equity
+#      (deposit franchise duration, 04/D5); research loss screen > 15% of observed Tier 1
 #  R3  system aggregates over time; cross-section and distribution by ownership/size
 #  R4  validation: does the measure predict the REALISED change in a bank's NIM?
 #        Δ12 NIM_bt = α_b + τ_t + γ·(Gap_b,t−12 × Δ12 i_t) + ε  (bank + month FE, s.e. clustered by bank)
@@ -57,7 +57,7 @@ PAR <- list(
   oth_liab_duration_y = 1.0,
   nmd_delta = 0.2,            # run-off rate of non-maturity deposits for the franchise duration (D5)
   theta_shrink_k = 24,        # shrinkage of bank ECM θ to the mean group: weight n/(n + k)
-  sot_threshold = 0.15,       # supervisory outlier test: |ΔEVE| / equity
+  sot_threshold = 0.15,       # loss / observed Tier 1; book-equity ratios remain descriptive
   shock_bp = 100)
 
 # ------------------------------ inputs ---------------------------------------
@@ -109,6 +109,8 @@ sumcols <- function(D, spec) { vs <- strsplit(spec, "+", fixed = TRUE)[[1]]; vs 
 for (k in seq_len(nrow(ITEMS))) { it <- ITEMS[k]; B[, (paste0("U_", it$item)) := sumcols(B, it$uah)]; B[, (paste0("F_", it$item)) := sumcols(B, it$fx)] }
 B[, TA := fcoalesce(col_or_na(B, "fin_assets"), col_or_na(B, "assets"))]
 B[, EQ := fcoalesce(col_or_na(B, "fin_equity"), col_or_na(B, "equity"))]
+B[, T1 := col_or_na(B, "tier1_mn")]
+B[!is.finite(T1) | T1 <= 0, T1 := NA_real_]
 B[, .nii_m := fcoalesce(col_or_na(B, "fin_nii_m"), col_or_na(B, "nii_m"))]
 B[, NII12 := frollsum(.nii_m, 12, na.rm = TRUE), by = nkb][, .nii_m := NULL]
 B[, mapped_A := Reduce(`+`, lapply(ITEMS[side == "A", item], function(i) get(paste0("U_", i)) + get(paste0("F_", i))))]
@@ -167,7 +169,8 @@ eve <- function(D, behavioural) { tot <- 0
   -0.02 * tot }                                                                    # +200 bp
 B[, `:=`(dEVE_c = eve(B, FALSE), dEVE_b = eve(B, TRUE))]
 B[, `:=`(dEVE_c_eq = 100 * dEVE_c / EQ, dEVE_b_eq = 100 * dEVE_b / EQ)]
-B[, `:=`(SOT_c = -dEVE_c_eq > 100 * PAR$sot_threshold, SOT_b = -dEVE_b_eq > 100 * PAR$sot_threshold)]
+B[, `:=`(dEVE_c_t1 = 100 * dEVE_c / T1, dEVE_b_t1 = 100 * dEVE_b / T1)]
+B[, `:=`(SOT_c = -dEVE_c_t1 > 100 * PAR$sot_threshold, SOT_b = -dEVE_b_t1 > 100 * PAR$sot_threshold)]
 for (v in c("dEVE_c_eq", "dEVE_b_eq")) B[!is.finite(get(v)) | abs(get(v)) > 1e3, (v) := NA_real_]
 status("R2 чутливості", "ok", sprintf("β-шляхи з 2.2 до h = %d; λ: депозити ФО %.3f, СГ %.3f, кредити СГ %.3f, ФО %.3f", HMAX, LAMBDA[["hh_term"]], LAMBDA[["corp_term"]], LAMBDA[["loan_corp"]], LAMBDA[["loan_hh"]]))
 
@@ -176,12 +179,15 @@ latest <- B[, max(month)]
 blk("R3 система і банки", {
   SYS <- B[, .(banks = .N, TA = sum(TA), RG12 = sum(RG12 * TA) / sum(TA), CG12 = sum(CG12 * TA) / sum(TA), RGLR = sum(RGLR * TA, na.rm = TRUE) / sum(TA),
                dNII_r = sum(dNII_r), dNII_c = sum(dNII_c), NII12 = sum(NII12, na.rm = TRUE), EQ = sum(EQ, na.rm = TRUE),
-               dEVE_c = sum(dEVE_c), dEVE_b = sum(dEVE_b), share_asset_sensitive = mean(RG12 > 0)), by = month][order(month)]
+               dEVE_c = sum(dEVE_c), dEVE_b = sum(dEVE_b), T1 = if (all(is.finite(T1))) sum(T1) else NA_real_,
+               tier1_banks = sum(is.finite(T1)), share_asset_sensitive = mean(RG12 > 0)), by = month][order(month)]
   SYS[, `:=`(dNII_r_pct = 100 * dNII_r / NII12, dNII_c_pct = 100 * dNII_c / NII12, dEVE_c_eq = 100 * dEVE_c / EQ, dEVE_b_eq = 100 * dEVE_b / EQ)]
+  SYS[, `:=`(dEVE_c_t1 = 100 * dEVE_c / T1, dEVE_b_t1 = 100 * dEVE_b / T1)]
   save_tab(SYS, "S23_R3_system_monthly.csv", "R3_system")
   L <- B[month == latest, .(nkb, bank = fullname, owner, TA_bn = TA / 1e3, EQ_bn = EQ / 1e3, CG12_pp = 100 * CG12, RG12_pp = 100 * RG12, RGLR_pp = 100 * RGLR,
                            dNII_c_mn = dNII_c, dNII_r_mn = dNII_r, dNII_up_mn = dNII_up, dNII_dn_mn = dNII_dn, dNII_c_pct, dNII_r_pct, dNII_r_eq,
-                           dEVE_c_eq, dEVE_b_eq, SOT_c, SOT_b, demand_share = 100 * col_or_na(B[month == latest], "demand_share"))][order(-TA_bn)]
+                           T1_mn = T1, capital_report_date = report_date, dEVE_c_eq, dEVE_b_eq, dEVE_c_t1, dEVE_b_t1,
+                           SOT_c, SOT_b, demand_share = 100 * col_or_na(B[month == latest], "demand_share"))][order(-TA_bn)]
   save_tab(L, "S23_R3_bank_gaps_latest.csv", "R3_banks_latest")
   OWN <- B[month == latest & !is.na(owner), .(banks = .N, TA_bn = sum(TA) / 1e3, CG12_pp = 100 * sum(CG12 * TA) / sum(TA), RG12_pp = 100 * sum(RG12 * TA) / sum(TA),
              dNII_r_pct = 100 * sum(dNII_r) / sum(NII12, na.rm = TRUE), dEVE_b_eq = 100 * sum(dEVE_b) / sum(EQ, na.rm = TRUE),
@@ -204,10 +210,10 @@ blk("R3 система і банки", {
     labs(title = "Договірний і виявлений розрив переоцінки банків", subtitle = sprintf("%s; пунктир — збіг оцінок", format(latest, "%m.%Y")),
          x = "Договірний розрив, % активів на 1 в.п.", y = "Виявлений розрив, % активів на 1 в.п.", caption = CAP) + theme_thesis()
   save_fig(p, "S23_R3_contract_vs_revealed.png", 8.5, 5.5)
-  p <- ggplot(B[month == latest & is.finite(dEVE_b_eq)], aes(dEVE_c_eq, dEVE_b_eq)) + geom_hline(yintercept = c(-15, 15), linetype = "22", linewidth = .3) +
-    geom_vline(xintercept = c(-15, 15), linetype = "22", linewidth = .3) + geom_point(shape = 21, fill = "grey60") +
-    labs(title = "Зміна економічної вартості капіталу при +200 б.п.", subtitle = "Пунктир — поріг тесту на викид (±15% капіталу, Базель IRRBB)",
-         x = "Договірні строки (кошти на вимогу: D = 0), % капіталу", y = "Поведінкові строки (депозитна франшиза), % капіталу", caption = CAP) + theme_thesis()
+  p <- ggplot(B[month == latest & is.finite(dEVE_b_t1)], aes(dEVE_c_t1, dEVE_b_t1)) + geom_hline(yintercept = -15, linetype = "22", linewidth = .3) +
+    geom_vline(xintercept = -15, linetype = "22", linewidth = .3) + geom_point(shape = 21, fill = "grey60") +
+    labs(title = "Зміна економічної вартості капіталу при +200 б.п.", subtitle = "Втрати відносно фактичного Tier 1 на ту саму дату; дослідницький скринінг",
+         x = "Договірні строки, % Tier 1", y = "Поведінкові строки, % Tier 1", caption = CAP) + theme_thesis()
   save_fig(p, "S23_R3_eve_outlier_test.png", 8.5, 5.2)
 })
 
@@ -283,8 +289,10 @@ blk("Excel-входи", {
   items_long <- rbindlist(lapply(seq_len(nrow(ITEMS)), function(k) { it <- ITEMS[k]
     Ls[, .(nkb, bank = fullname, owner, item = it$item, side = it$side, label = it$label, uah = get(paste0("U_", it$item)), fx = get(paste0("F_", it$item)))] }))
   save_tab(items_long, "S23_bank_items_latest.csv", "X_items")
-  save_tab(Ls[, .(nkb, bank = fullname, owner, month, TA, EQ, NII12, policy, D_hhdem_b, D_corpdem_b, cod4_uah = 100 * col_or_na(Ls, "cod4_uah"),
+  save_tab(Ls[, .(nkb, bank = fullname, owner, month, TA, EQ, T1, capital_report_date = report_date, NII12, policy, D_hhdem_b, D_corpdem_b, cod4_uah = 100 * col_or_na(Ls, "cod4_uah"),
                   demand_share = col_or_na(Ls, "demand_share"), fx_share = col_or_na(Ls, "fx_share"))], "S23_bank_totals_latest.csv", "X_totals")
+  capcols <- intersect(c("nkb", "month", "report_date", "reg_capital_mn", "tier1_mn", "cet1_mn", "headroom_total_min_pp", "headroom_tier1_min_pp", "lcr_all_pct", "nsfr_pct", "capital_source_conflict"), names(Ls))
+  save_tab(Ls[, ..capcols], "S23_capital_latest.csv", "X_capital")
   bp <- rbindlist(lapply(unique(na.omit(ITEMS$key)), function(k) data.table(beta_key = k, h = 0:HMAX, b = bpath(k), b_up = bpath(k, "b_up"), b_dn = bpath(k, "b_dn"))))
   save_tab(bp, "S23_beta_paths.csv", "X_betas")
   th <- rbindlist(lapply(unique(na.omit(ITEMS$key)), function(k) data.table(nkb = Ls$nkb, beta_key = k, theta = th_bank(Ls$nkb, k))))

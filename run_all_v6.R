@@ -24,6 +24,8 @@ MODELS     <- c("03", "04", "05", "06", "07", "09", "10", "14", "11", "08", "12"
   Sys.getenv("THESIS_CODE_DIR", unset = getwd())
 if (!length(.root) || !nzchar(.root[1])) .root <- Sys.getenv("THESIS_CODE_DIR", unset = getwd())
 Sys.setenv(THESIS_CODE_DIR = .root)
+source(file.path(.root, "00_config_v6.R"), encoding = "UTF-8")
+ensure_capital_inputs()
 SCRIPTS <- c("01" = "01_nbu_download_v6.R", "01c" = "01c_fill_gaps_v6.R", "01b" = "01b_check_db_v6.R", "02" = "02_build_marts_v6.R",
              "03" = "03_section_2_1_analysis_v2.R", "04" = "04_section_2_1_deposit_dynamics.R", "05" = "05_section_2_1_assets_joint.R",
              "06" = "06_dynamics_v6.R", "07" = "07_section_2_2_transmission.R", "09" = "09_expectations_money_v6.R",

@@ -8,13 +8,39 @@
   "seed": 20261105,
   "inference": "two-way bank/month clusters for gap validation; bank clusters for short-window reforms; DK12 for common-shock long differences",
   "forecast_scope": "past-only coefficients use vintage-final data, so pseudo out of sample, not real-time",
-  "remaining": "No external instrument, contract repricing dates, Tier 1 capital series, actual reserve base or hedging terms supplied. Conditional sensitivities do not resolve these identification/data gaps.",
+  "remaining": "No external instrument, contract repricing dates, actual reserve base or hedging terms supplied. Observed Tier 1 is available from August 2024 economic month; earlier core capital is a separate regime. Full bank-specific capital requirements and historical publication vintages are unavailable.",
+  "capital": {
+    "parser_version": 2,
+    "rows": 6979,
+    "banks": 85,
+    "report_start": "2018-03-01",
+    "report_end": "2026-10-01",
+    "economic_month_end": "2026-09-01",
+    "missing_report_dates": [
+      "2022-03-01",
+      "2022-04-01",
+      "2022-05-01"
+    ],
+    "tier1_rows": 1568,
+    "conflicting_bank_months": 7,
+    "tier1_economic_start": "2024-08-01",
+    "matching": "exact NBU bank code and economic month; report date is next month start; no fill",
+    "units": "million UAH for capital and risk exposure; percentage points for ratios/headroom",
+    "headroom_scope": "general minimum benchmark, not full binding or supervisory headroom",
+    "remaining": "Legacy core is not relabelled Tier 1. Components workbook supplies capital levels; source conflicts retained and excluded from headroom estimation. Bank-specific requirements, buffers, new-bank exceptions and publication vintages are not supplied.",
+    "input_sha256": {
+      "Skladovi_RK_2026-10-01.xlsx": "0b381cc6fc4ec740acd6bcd9613e2503daac6ef7e16a527b206a255b6c380a4a",
+      "Ratios_by_Banks_2026-10-01.xlsx": "4fc7356d4b4f2324cbde1f9886a389f7f49c3659c29e551b6e851b231538cad3"
+    },
+    "latest_panel_tier1_banks": 59
+  },
   "input_sha256": {
-    "mart_system_product_v6.parquet": "010928b01e1d9dca32ebdf6ede8a9c7539289639d68c210396a89065f50ad100",
-    "mart_bank_month_v6.parquet": "7f45c3929dddfb6052a5c6c2b2e6e0e001ca36f32313686605e1a8aa98b403c2",
-    "mart_system_month_v6.parquet": "ca43159e70a8fe59a0fd896360aab4ab27c6472106172a9b5221ec28d3505492",
-    "mart_bank_assets_v6.parquet": "fbd8d1b7ade1c7937ac5f60bc616e4f9586d02fd7e01dbaea52c62d7d6360403",
+    "mart_bank_prudential_v7.parquet": "5b86acb862ed68e84a476c84c6bd447351a8abc344158944b285f468dd62d2d6",
     "mart_fm_rates_long_v6.parquet": "94ca9498ea4e434c77f42bc2674ea2bdab3600015f5db335326fc0639f272ede",
-    "mart_system_assets_v6.parquet": "be535aad9162135d74585e8177b9b137ccaa4cabdcee800df398e27a0273537f"
+    "mart_bank_assets_v6.parquet": "fbd8d1b7ade1c7937ac5f60bc616e4f9586d02fd7e01dbaea52c62d7d6360403",
+    "mart_bank_month_v6.parquet": "7f45c3929dddfb6052a5c6c2b2e6e0e001ca36f32313686605e1a8aa98b403c2",
+    "mart_system_assets_v6.parquet": "be535aad9162135d74585e8177b9b137ccaa4cabdcee800df398e27a0273537f",
+    "mart_system_product_v6.parquet": "010928b01e1d9dca32ebdf6ede8a9c7539289639d68c210396a89065f50ad100",
+    "mart_system_month_v6.parquet": "ca43159e70a8fe59a0fd896360aab4ab27c6472106172a9b5221ec28d3505492"
   }
 }

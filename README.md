@@ -2,11 +2,11 @@
 
 Author: Yurii Havryliuk. Data snapshot: November 2026; bank balances end in August 2026.
 
-The GitHub tree contains the supplied R/Python thesis pipeline and an independent offline review module. The complete downloadable snapshot also includes regenerated Excel tools, reviewed documents and corrected mathematical figures. The work concerns sections 2.1–2.4 and IRRBB; other thesis chapters were not supplied.
+This repository contains the R/Python thesis pipeline, an independent offline review module and reproducibility instructions. The complete offline archive also contains regenerated Excel tools, reviewed Word documents and corrected mathematical figure labels. The work concerns sections 2.1–2.4 and IRRBB; other thesis chapters were not supplied.
 
 ## Important result
 
-The full-sample association of the revealed repricing gap with NIM remains positive. A stricter past-only coefficient check covers only nine months and is statistically inconclusive. Reserve-reform estimates are sensitive to pre-event trends. Read the [review report](https://chatgpt.com/library?file_id=libfile_b2625a034e588191bcf7abc5849b137c&account_id=personal) and `review/limitations_register.csv` before interpreting the estimates.
+The full-sample association of the revealed repricing gap with NIM remains positive. A stricter past-only coefficient check covers only nine months and is statistically inconclusive. Reserve-reform estimates are sensitive to pre-event trends. Read `docs/Thesis_code_review.docx` and `review/limitations_register.csv` before interpreting the estimates.
 
 ## Reproduce the independent review
 
@@ -18,7 +18,7 @@ python 13_irrbb_stress_test.py
 python scripts/verify_release.py
 ```
 
-First restore the snapshot inputs as described below. The supplied Parquet snapshot is sufficient. No network data update is performed. `review/validation_manifest.json` records input hashes, sample scope and inference. Generated-coefficient inference is conditional; the supplement is not a structural monetary policy identification strategy. The expanding-window check uses final-vintage data, not historical publication vintages.
+The supplied Parquet snapshot is sufficient. No network data update is performed. `review/validation_manifest.json` records input hashes, sample scope and inference. Generated-coefficient inference is conditional; the supplement is not a structural monetary policy identification strategy. The expanding-window check uses final-vintage data, not historical publication vintages.
 
 ## R pipeline
 
@@ -30,7 +30,7 @@ Rscript run_all_v6.R
 
 By default this rebuilds marts and models from the supplied raw Parquet snapshot, then runs the Python supplement. Set `THESIS_UPDATE_DB=true` to explicitly enable NBU downloads. Set `THESIS_AUTO_INSTALL=true` only if you want the model scripts to install missing R packages automatically. `THESIS_CODE_DIR` and `THESIS_PYTHON` override the project directory and Python executable. The driver stops on failed steps instead of reporting later outputs as current.
 
-**Execution status:** the Python supplement, both Python workbook generators and figure renderer ran in this review. R was unavailable in the execution environment, so the full modified R pipeline was not executed. The CI parses all R files; a successful parse does not verify their numerical results. Excel workbooks contain formulas; full Microsoft Excel recalculation was not performed here.
+**Execution status:** the Python supplement, both Python workbook generators, capital importer and capital supplement ran in this review. R was unavailable in the execution environment, so the full modified R pipeline was not executed. The CI parses all R files; a successful parse does not verify their numerical results. Excel workbooks contain formulas; full Microsoft Excel recalculation was not performed here.
 
 ## Output provenance
 
@@ -47,7 +47,7 @@ By default this rebuilds marts and models from the supplied raw Parquet snapshot
 
 The historical full-sample LP coefficients remain inputs to the inherited baseline. Use the `past_only_common_sample` rows in `review/R23_validation.csv` for the leakage-reduced check. Its betas are expanding-window long differences, a deliberately different robustness specification from the original panel LP. The comparison uses the same validation sample and normalizes to lagged interest-earning assets.
 
-Bank NBU codes remain the identifiers. Presentation labels omit quotation marks; raw names remain in source data. Screening ratios using book equity are illustrative and do not establish supervisory Tier 1 breaches. Contract repricing dates, actual reserve bases, hedge costs and an external monetary instrument are not in this snapshot.
+Bank NBU codes remain the identifiers. Presentation labels omit quotation marks; raw names remain in source data. Book-equity percentages remain separately labelled descriptive measures. Updated screenings use observed exact-date Tier 1 and still do not establish supervisory breaches because repricing profiles are modelled. Contract repricing dates, actual reserve bases, hedge costs, bank-specific binding capital requirements and an external monetary instrument are not in this snapshot.
 
 ## Mathematical figures
 
@@ -55,10 +55,35 @@ Future R exports use native plotmath fractions, indices and powers. The separate
 
 ## Snapshot and repository
 
-Private repository: https://github.com/Havrilukuriy2004/oneu-thesis
+Repository: https://github.com/Havrilukuriy2004/oneu-thesis
 
-The GitHub tree contains code, validation tables and the limitations register. Binary documents, Parquet inputs, Excel workbooks and all figures are in the [complete offline package](https://chatgpt.com/library?file_id=libfile_dfdb7ac8ef08819194aa21eca89e1237&account_id=personal), available through the author's ChatGPT account. The [review report](https://chatgpt.com/library?file_id=libfile_b2625a034e588191bcf7abc5849b137c&account_id=personal) is available separately. No GitHub Release asset has been uploaded.
+The GitHub source tree contains the code and review documents. The complete offline package is available in the author’s ChatGPT files as `master_thesis_section2_reviewed.zip`. The GitHub repository tracks source and review tables, while the archive also includes input data, generated workbooks, documents and figures. Extract the final archive, then run the commands above from its `oneu-thesis` directory. In a GitHub checkout, copy the archive's `data_nbu` and `output_nbu` directories into the checkout before running the offline review. The source-only CI checks Python compilation and R parsing. It does not download the offline snapshot or estimate models.
 
-Extract `master_thesis_section2_reviewed.zip` and run from its `oneu-thesis` directory. To use a GitHub checkout, copy `data_nbu`, `output_nbu`, `docs` and `review/figure_source` from the archive into the checkout before running the offline review and figure/document scripts. GitHub Actions checks source compilation and R syntax without the binary inputs. The 24 numerical/output integrity checks were executed locally against the full snapshot; they are not reproduced by source-only CI.
+GitHub and browser authentication use different connections; no credentials or tokens are stored in this project.
 
-No credentials or tokens are stored in this project.
+## Capital update of 7 November 2026
+
+Place both supplied workbooks in `data_nbu/local_inputs/`:
+
+- `Skladovi_RK_2026-10-01.xlsx`
+- `Ratios_by_Banks_2026-10-01.xlsx`
+
+They are included in the complete updated package. `capital_inputs.py` detects worksheet schemas by their headers, trims date labels and reads NBU bank codes even when a legacy code is attached directly to the bank name. Amounts are converted from thousand UAH to million UAH. Report date 1 September refers to the August economic month; joins always use the exact bank code and economic month. Missing reports are never interpolated. Imported prudential data are separate from the six original mart snapshots.
+
+`00_config_v6.R` attaches the prudential panel when a model reads `mart_bank_month_v6`. The reader is rebuilt if its inputs or code change. Both Excel generators also read the capital inputs when launched directly. The full package contains 6,979 prudential bank-months across 85 banks; observed Tier 1 begins in economic August 2024 and covers all 59 banks in the model's August 2026 endpoint. Capital data alone extend to September 2026, without extending the common model sample.
+
+The old regulatory core-capital measure is retained separately. New Tier 1 is never reconstructed from book equity. Seven source-conflicting bank-months are retained in a reconciliation table and excluded from headroom estimation. General-minimum headroom excludes individual SREP requirements, capital buffers and special requirements for new banks. It is not full binding capital headroom. Historical publication dates are unknown.
+
+Run from the project root after installing the Python requirements:
+
+```sh
+python capital_inputs.py
+python 15_robustness_review.py
+python 12_bank_excel.py
+python 13_irrbb_stress_test.py
+python scripts/verify_release.py
+```
+
+The capital supplement estimates bank/month-FE interactions separately by capital regime and repeats gap validation on identical samples with and without lagged capital, LCR and size controls. `review/R24_shadow_cost_with_capital.csv` links inherited shadow costs to prudential observations for inspection; it does not replace the unobserved reserve base. `capital_refresh.py` updates EVE denominators and screening flags in the inherited section-2.3 outputs and regenerates the corresponding figure. EVE numerators remain inherited R results. Run the full R driver to re-estimate all R models; that numerical R execution has not been performed in this environment.
+
+Details and accepted data limitations are in `CAPITAL_UPDATE.md`. The author has fixed the supplied data as final. No additional inputs are required to run this snapshot. The final capital attachment is byte-identical to the capital workbook already included. See `RSTUDIO_GITHUB.md` for updating a cloned RStudio project after new commits. The complete updated archive is required for the capital workbooks; an older archive may not include them.

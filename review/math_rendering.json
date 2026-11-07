@@ -46,5 +46,10 @@
   {
     "file": "output_nbu/section_2_4/figures/svg/S24_R3_nominal_vs_shadow.svg",
     "changes": 1
+  },
+  {
+    "file": "output_nbu/section_2_3/figures/svg/S23_R3_eve_outlier_test.svg",
+    "changes": 2,
+    "renderer": "capital_refresh.py; mathematical fraction axes"
   }
 ]

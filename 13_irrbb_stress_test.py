@@ -19,6 +19,8 @@
 Запуск: python3 13_irrbb_stress_test.py [OUTPUT_DIR]  → OUTPUT_DIR/bank_excel/IRRBB_Stress_Test.xlsx
 """
 import csv, os, re, sys, math, statistics, datetime as dt
+from pathlib import Path
+from capital_inputs import enrich_totals
 from collections import defaultdict
 from openpyxl import Workbook
 from openpyxl.styles import Font, Alignment, Border, Side, PatternFill
@@ -59,6 +61,7 @@ items = rd(os.path.join(T23, "S23_items_parameters.csv"))
 irates = {r["item"]: (num(r["uah"]), num(r["fx"])) for r in rd(os.path.join(T23, "S23_item_rates_latest.csv"))}
 betas = rd(os.path.join(T23, "S23_beta_paths.csv"))
 totals = rd(os.path.join(T23, "S23_bank_totals_latest.csv"))
+totals = enrich_totals(totals, Path(OUT_ROOT).resolve().parent)
 bitems = rd(os.path.join(T23, "S23_bank_items_latest.csv"))
 theta = rd(os.path.join(T23, "S23_bank_theta.csv"))
 curves = rd(os.path.join(T23, "S23_curves_history.csv"))
@@ -211,10 +214,10 @@ S6 = sheet("13.6"); S7 = sheet("13.7"); S8 = sheet("13.8"); S9 = sheet("13.9", "
 
 # ------------------------------------------------------------ Д1 bank data
 put(D1, 1, 1, f"Д1. Баланс банків на {latest_txt}: статті, що переоцінюються (млн грн), капітал, ЧПД, поведінкові параметри (не редагувати)", A10B)
-D1C = ["nkb", "bank", "owner", "TA", "EQ", "NII12", "th_hh", "th_corp", "ou_hh", "ou_corp", "ou_nii_q1"] + [f"U_{i}" for i in IT] + [f"F_{i}" for i in IT]
+D1C = ["nkb", "bank", "owner", "TA", "EQ", "NII12", "th_hh", "th_corp", "ou_hh", "ou_corp", "ou_nii_q1"] + [f"U_{i}" for i in IT] + [f"F_{i}" for i in IT] + ["T1", "capital_date", "headroom", "LCR", "NSFR"]
 D1L = ["Код", "Банк", "Власність", "Активи", "Капітал (балансовий)", "ЧПД за 12 міс.", "θ коштів ФО на вимогу (п. 2.2)", "θ коштів СГ на вимогу (п. 2.2)",
        "OU: ядро коштів ФО на вимогу", "OU: ядро коштів СГ на вимогу", "OU: ЧПД 1-й процентиль, млн грн"] + \
-      [f"{ILAB[i]}: гривня" for i in IT] + [f"{ILAB[i]}: валюта" for i in IT]
+      [f"{ILAB[i]}: гривня" for i in IT] + [f"{ILAB[i]}: валюта" for i in IT] + ["Фактичний Tier 1, млн грн", "Звітна дата капіталу", "Запас до загального мінімуму, в.п.", "LCR за всіма валютами, %", "NSFR, %"]
 for j, (k, l) in enumerate(zip(D1C, D1L)):
     put(D1, 3, j + 1, k, A9, al=CEN, border=BOX); put(D1, 4, j + 1, l, al=CEN, border=BOX)
 D1.row_dimensions[4].height = 70
@@ -225,7 +228,7 @@ for n, b in enumerate(banks):
     vals = [b["nkb"], clean(b["bank"]), OWN.get(b["owner"], b["owner"] or "…"), num(b["TA"]), num(b["EQ"]), num(b["NII12"]),
             TH.get((b["nkb"], "hh_demand")), TH.get((b["nkb"], "corp_demand")),
             num(OUB.get(b["nkb"], {}).get("core_hh_dem"), None), num(OUB.get(b["nkb"], {}).get("core_corp_dem"), None), num(OUN.get(b["nkb"], {}).get("dnii_q1"), None)] + \
-           [stock[(b["nkb"], i, "U")] for i in IT] + [stock[(b["nkb"], i, "F")] for i in IT]
+           [stock[(b["nkb"], i, "U")] for i in IT] + [stock[(b["nkb"], i, "F")] for i in IT] + [num(b.get("tier1_mn"), None), b.get("report_date"), num(b.get("headroom_total_min_pp"), None), num(b.get("lcr_all_pct"), None), num(b.get("nsfr_pct"), None)]
     for j, v in enumerate(vals):
         put(D1, r, j + 1, v, fmt=(N2 if D1C[j].startswith(("th", "ou_h", "ou_c")) else N1 if j >= 3 else None))
 RL = R1 + NB - 1
@@ -276,7 +279,7 @@ yes = ["Так", "Ні"]
 th_list = ["Системний (медіана банків)", "Банку"]
 SWL = [
     ("bank", "Банк", clean(banks[0]["bank"]), None, "Оберіть банк (впорядковано за активами)."),
-    ("t1_in", "Капітал першого рівня, млн грн (необов'язково)", None, N1, "Порожньо — береться балансовий капітал банку (наближення Tier 1)."),
+    ("t1_in", "Капітал першого рівня, млн грн (ручна заміна)", None, N1, "Порожньо - фактичний Tier 1 із файлу складових на ту саму дату балансу. Балансовий капітал не підставляється."),
     ("shk_u", "Розмір шоків для гривні", shock_uah_list[0], None, "Калібрування: 99,9-й процентиль 6-міс. змін кривої НБУ, межі 100…400/500/300 б.п. (BCBS 2024)."),
     ("shk_f", "Розмір шоків для валюти", shock_fx_list[0], None, "BCBS 2024: USD 200/300/225, EUR 225/350/200 б.п. (паралельний/короткі/довгі)."),
     ("nmd", "Модель коштів на вимогу", nmd_list[0], None, "Виявлений: ядро = 1 − θ (п. 2.2); OU: ядро = стабільна частка (1 % квантиль 12-міс. мінімуму) × (1 − β); BCBS: ліміти 90 %/5 р., 50 %/4 р."),
@@ -302,7 +305,7 @@ rr = SW0 + len(SWL)
 put(S1, rr, 1, "Рядок банку в даних", al=LEFT, border=BOX); put(S1, rr, 2, f"=MATCH(bank,{d1col('bank')},0)", fmt=N0, al=RIGHT, border=BOX, fill=FILL_KEY); nm("row", S1, rr, 2)
 rr += 1
 put(S1, rr, 1, "Капітал першого рівня, що використовується, млн грн", al=LEFT, border=BOX)
-put(S1, rr, 2, f'=IF(ISNUMBER(t1_in),t1_in,INDEX({d1col("EQ")},row))', A10B, N1, RIGHT, BOX, FILL_KEY); nm("T1", S1, rr, 2)
+put(S1, rr, 2, f'=IF(ISNUMBER(t1_in),IF(t1_in>0,t1_in,NA()),IF(INDEX({d1col("T1")},row)>0,INDEX({d1col("T1")},row),NA()))', A10B, N1, RIGHT, BOX, FILL_KEY); nm("T1", S1, rr, 2)
 rr += 1
 put(S1, rr, 1, "ЧПД за 12 міс., млн грн", al=LEFT, border=BOX); put(S1, rr, 2, f'=INDEX({d1col("NII12")},row)', fmt=N1, al=RIGHT, border=BOX, fill=FILL_KEY); nm("NII12", S1, rr, 2)
 rr += 1
@@ -750,7 +753,7 @@ for j in range(4, 13): S1.column_dimensions[CL(j)].width = 12
 S1.freeze_panes = "A5"
 r1_end = foot(S1, K0 + len(KP), ["Втрата EVE = −ΔEVE; агрегація BCBS: втрати за валютами сумуються, прибутки — з вагою 50 %, нижня межа 0.",
                                   "ΔЧПД — 12 міс., постійний баланс. Договірний ГЕП (НБУ, п. 246 Постанови № 64): Σ розрив кошика × ΔR × (1 − t). Виявлений: Σ залишок × середня β за 1-й рік × ΔR облікової.",
-                                  "Tier 1 — балансовий капітал банку, якщо не введено регулятивний основний капітал (перемикач)."])
+                                  "Tier 1 узято із файлу складових за тією самою датою балансу; ручна заміна має пріоритет. Без Tier 1 тест недоступний. Модельні оцінки не є наглядовим висновком."])
 # dropdowns
 dv_list(S1, NAMES["bank"].split("!")[1].replace("$", ""), f"'Д1'!$B${R1}:$B${RL}")
 for key, lst in (("thsrc", th_list), ("shk_u", shock_uah_list), ("shk_f", shock_fx_list), ("nmd", nmd_list), ("nii", nii_list), ("nmdcap", yes), ("floor", yes), ("asym", yes)):
@@ -907,7 +910,7 @@ foot(S8, r + 1, ["Відтік ядра переводить частину ст
                  "Сітку можна використовувати як карту ризику: червоні клітинки — поєднання шоку і відтоку, за яких втрата EVE перевищує поріг."])
 
 # ------------------------------------------------------------ 13.9 ranking of all banks
-r = titles(S9, "13.9. Стрес-тест усіх банків за обраних припущень", "(втрата EVE — % Tier 1 (балансовий капітал); ΔЧПД — % Tier 1; фільтр і сортування — у шапці)")
+r = titles(S9, "13.9. Стрес-тест усіх банків за обраних припущень", "(втрата EVE та ΔЧПД у % фактичного Tier 1 на ту саму дату; дослідницький скринінг)")
 labs = ["Код", "Банк", "Власність", "Активи, млн грн", "Tier 1, млн грн"] + [f"Втрата EVE: {SCN[s]}" for s in range(6)] + \
        ["EVE під ризиком (макс. BCBS), %", "Найгірший сценарій BCBS", "Тест на викид EVE", "Втрата EVE: НБУ +200", "Втрата EVE: НБУ −200",
         "ΔЧПД +200 (НБУ), %", "ΔЧПД −200 (НБУ), %", "Тест на викид ЧПД", "Ранг ризику EVE", "ЧПД під ризиком OU 1 % (Монте-Карло), % Tier 1"]
@@ -917,7 +920,7 @@ for n in range(NB):
     q = R9 + n; d = R1 + n
     Ur = f"'Д1'!${U0}{d}:${U1}{d}"; Fr = f"'Д1'!${F0}{d}:${F1}{d}"
     put(S9, q, 1, f"='Д1'!A{d}", LINKF); put(S9, q, 2, f"='Д1'!B{d}", LINKF, al=LNW); put(S9, q, 3, f"='Д1'!C{d}", LINKF)
-    put(S9, q, 4, f"='Д1'!{CL(DC['TA'])}{d}", LINKF, N0, RIGHT); put(S9, q, 5, f"='Д1'!{CL(DC['EQ'])}{d}", LINKF, N0, RIGHT)
+    put(S9, q, 4, f"='Д1'!{CL(DC['TA'])}{d}", LINKF, N0, RIGHT); put(S9, q, 5, f"=IF('Д1'!{CL(DC['T1'])}{d}>0,'Д1'!{CL(DC['T1'])}{d},NA())", LINKF, N0, RIGHT)
     loss_cols = []
     for s in list(range(6)) + [6, 7]:
         hc = HELP0 + 2 * (s if s < 6 else s)
@@ -994,7 +997,7 @@ rows = [
     ("Процеси Орнштейна–Уленбека", "Облікова ставка, ставки статей і обсяги депозитів — OU з рухомим середнім (облікова, π^e, E[Δs], BLS) і стрибками; Монте-Карло з корельованими шоками і невизначеністю параметрів", "Vasicek (1977); Merton (1976); Barndorff-Nielsen & Shephard (2001); п. 2.3 цієї роботи"),
     ("Сценарії OU для EVE", "Δ облікової за 6 міс. на рівні 99,9 % / 0,1 % (зі стрибками і без) переноситься на криву за Васічеком: ΔR(τ) = Δi·(1 − e^(−κτ))/(κτ)", "Vasicek (1977); BCBS (2016) — внутрішні сценарії"),
     ("Стабільна частка коштів на вимогу (OU)", "1-й процентиль 12-міс. мінімуму обсягу (OU-стрибки) × (1 − β довгострокової передачі) = ядро; для банку — власна волатильність і стрибки", "EBA GL/2022/14 (поведінкові моделі NMD); практика ALM"),
-    ("Обмеження", "Капітал — балансовий (не регулятивний Tier 1); ставки статей — середні по системі; без опціонів (кепи, флори), без комерційної маржі; валютна крива — USD", "—"),
+    ("Обмеження", "Tier 1 спостережуваний за датою балансу; ставки статей середні по системі; договірні строки та хеджування не спостерігаються; валютна крива USD; повні індивідуальні вимоги до капіталу невідомі", "NBU capital workbooks; model assumptions"),
 ]
 for k, row_ in enumerate(rows):
     for j, v in enumerate(row_):

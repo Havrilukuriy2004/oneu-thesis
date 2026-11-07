@@ -118,6 +118,9 @@ save_tab(RR, "S24_rr_schedule.csv", "R1_rr_schedule")
 
 # ------------------------------ data --------------------------------------
 B <- store_read("mart_bank_month_v6"); B[, `:=`(month = as.Date(month), nkb = as.character(nkb))]
+# Capital controls are exported separately; they do not replace the reserve base.
+capcols <- intersect(c("nkb", "month", "report_date", "capital_regime", "headroom_total_min_pp", "headroom_tier1_min_pp", "lcr_all_pct", "nsfr_pct", "capital_source_conflict"), names(B))
+save_tab(B[, ..capcols], "S24_prudential_controls.csv", "prudential_controls")
 S <- store_read("mart_system_month_v6"); S[, month := as.Date(month)]
 MAC <- S[, .(month, policy = policy_avg, cd_on = fcoalesce(col_or_na(S, "cd_on_rate_avg"), policy_avg),
              y_bench = fcoalesce(col_or_na(S, "zc_uah_3y_avg"), col_or_na(S, "fm_ovdp_prim"), col_or_na(S, "ovdp_uah_all")),

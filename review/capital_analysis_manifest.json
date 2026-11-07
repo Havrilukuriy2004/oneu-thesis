@@ -1,0 +1,9 @@
+{
+  "interaction_estimates": 168,
+  "inference_unavailable": 10,
+  "validation_coefficients": 14,
+  "baseline_data_end": "2026-08-01",
+  "provenance": "New Python supplement; inherited R estimates remain separately labelled",
+  "headroom": "General minimum benchmark only; bank-specific SREP requirements and buffers unknown",
+  "vintage": "Final-vintage prudential data; lagging balances does not establish historical publication availability"
+}
