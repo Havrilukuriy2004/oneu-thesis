@@ -8,6 +8,7 @@ import numpy as np
 import pandas as pd
 from scipy import stats
 from bank_names import clean_bank_name
+from capital_inputs import attach
 ROOT=Path(sys.argv[1]) if len(sys.argv)>1 else Path(__file__).resolve().parent
 OUT=ROOT/'review'; OUT.mkdir(exist_ok=True)
 P=ROOT/'data_nbu/parquet'; T=ROOT/'output_nbu'
@@ -22,6 +23,7 @@ assert not B.duplicated(['nkb','month']).any(), 'duplicate bank-month keys'
 assert not A.duplicated(['nkb','month']).any()
 B=B.merge(A[['nkb','month','avg_iea','nii_m','equity','assets','ii_le_m','ii_hh_m','ie_m','avg_loans_le','avg_loans_hh','avg_ibl']],on=['nkb','month'],validate='one_to_one')
 B=B.merge(S[['month','policy_avg']],on='month',validate='many_to_one')
+B=attach(B, ROOT)
 B['mi']=B.month.dt.year*12+B.month.dt.month
 B['bank']=B.fullname.map(clean_bank_name)
 for c in ['nim','roe']:
@@ -148,6 +150,7 @@ save(pd.DataFrame(val),'R23_validation')
 save(B[['nkb','bank','owner','month','nim','roe','rg','cg','rg_past','dy_nim','di12','x_rg','x_cg','x_rg_past']],'R23_validation_panel')
 # Duration sensitivity including an observed severe monthly run-off, not annualising a two-month war loss.
 D5=pd.read_csv(T/'section_2_1_v2/tables/D5_effective_duration_nmd.csv');tot=pd.read_csv(T/'section_2_3/tables/S23_bank_totals_latest.csv',dtype={'nkb':str});items=pd.read_csv(T/'section_2_3/tables/S23_bank_items_latest.csv',dtype={'nkb':str})
+tot=attach(tot, ROOT)
 dur=[]
 for delta in [.1,.2,.3]:
  for shock in [-.02,.02]:
@@ -161,10 +164,17 @@ for delta in [.1,.2,.3]:
      dd=np.interp(bank.policy/100,q.i0,q.duration)
     dv+=(1 if r.side=='A' else -1)*(r.uah+r.fx)*dd
    eve=-shock*dv
-   per.append(dict(nkb=bank.nkb,bank=bank.bank,delta=delta,shock_bp=round(shock*1e4),dEVE=eve,eve_pct_equity=100*eve/bank.EQ if bank.EQ>0 else np.nan,loss_exceeds_15pct=eve<-.15*bank.EQ))
+   t1=bank.tier1_mn
+   per.append(dict(nkb=bank.nkb,bank=bank.bank,month=bank.month,report_date=bank.report_date,delta=delta,shock_bp=round(shock*1e4),dEVE=eve,
+                   tier1_mn=t1,eve_pct_tier1=100*eve/t1 if pd.notna(t1) and t1>0 else np.nan,
+                   eve_pct_equity=100*eve/bank.EQ if bank.EQ>0 else np.nan,
+                   loss_exceeds_15pct=(eve<-.15*t1) if pd.notna(t1) and t1>0 else np.nan,
+                   equity_proxy_loss_exceeds_15pct=(eve<-.15*bank.EQ) if bank.EQ>0 else np.nan))
   dur+=per
 save(pd.DataFrame(dur),'R23_duration_sensitivity_banks')
-save(pd.DataFrame(dur).groupby(['delta','shock_bp']).agg(dEVE=('dEVE','sum'),share_loss_above_15pct=('loss_exceeds_15pct','mean')).reset_index(),'R23_duration_sensitivity_system')
+save(pd.DataFrame(dur).groupby(['delta','shock_bp']).agg(dEVE=('dEVE','sum'),tier1_mn=('tier1_mn','sum'),
+     tier1_banks=('tier1_mn','count'),share_loss_above_15pct=('loss_exceeds_15pct','mean'),
+     share_equity_proxy_loss_above_15pct=('equity_proxy_loss_exceeds_15pct','mean')).reset_index(),'R23_duration_sensitivity_system')
 runoff=[]
 for pr in ['hh_demand','corp_demand']:
  for cc in ['uah','fx']:
@@ -242,8 +252,17 @@ f,k=supf(y);beta0=np.linalg.lstsq(X,y,rcond=None)[0];res=y-X@beta0;res-=res.mean
 for _ in range(199):
  e=np.concatenate([np.take(res,np.arange(j,j+6)%n) for j in RNG.integers(0,n,size=(n+5)//6)])[:n];boots.append(supf(X@beta0+e)[0])
 save(pd.DataFrame([dict(supF=f,break_month=z.iloc[k].month,bootstrap_p=(1+sum(v>=f for v in boots))/(1+len(boots)),replications=len(boots),block_months=6,n=n,note='Fixed-design AR diagnostic, not a structural regime identification')]),'ROU_break_diagnostic')
+# New capital/liquidity checks use the same exact-calendar lag function and inference.
+from capital_review import run as capital_review
+capital_review(B, ROOT, fit_fe, lag)
+from capital_refresh import run as refresh_capital
+refresh_capital(ROOT)
 # independent coverage and leakage checks
 manifest={'data_end':str(B.month.max().date()),'bank_months':len(B),'banks':B.nkb.nunique(),'latest_banks':len(atlast),'duplicate_bank_months':int(B.duplicated(['nkb','month']).sum()),'calendar_gaps':int(B.groupby('nkb').mi.diff().gt(1).sum()),'seed':20261105,'inference':'two-way bank/month clusters for gap validation; bank clusters for short-window reforms; DK12 for common-shock long differences','forecast_scope':'past-only coefficients use vintage-final data, so pseudo out of sample, not real-time','remaining':'No external instrument, contract repricing dates, Tier 1 capital series, actual reserve base or hedging terms supplied. Conditional sensitivities do not resolve these identification/data gaps.'}
+manifest['remaining']='No external instrument, contract repricing dates, actual reserve base or hedging terms supplied. Observed Tier 1 is available from August 2024 economic month; earlier core capital is a separate regime. Full bank-specific capital requirements and historical publication vintages are unavailable.'
+manifest['capital']=json.loads((T/'capital/tables/capital_manifest.json').read_text())
+latest_cap=B.loc[B.month.eq(last)]
+manifest['capital']['latest_panel_tier1_banks']=int(latest_cap.tier1_mn.gt(0).sum())
 manifest['input_sha256']={p.name:hashlib.sha256(p.read_bytes()).hexdigest() for p in P.glob('mart*.parquet')}
 (OUT/'validation_manifest.json').write_text(json.dumps(manifest,ensure_ascii=False,indent=2))
 print(json.dumps({k:v for k,v in manifest.items() if k!='input_sha256'},ensure_ascii=False,indent=2))
