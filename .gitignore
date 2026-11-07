@@ -11,3 +11,12 @@ review/equation.*
 
 .venv/
 review/inherited_capital_baseline/
+
+# Offline inputs, generated artefacts and local-only review panels
+/data_nbu/
+/output_nbu/
+/docs/
+/review/figure_source/
+/review/R21_capital_panel_coverage.csv
+/review/R23_validation_panel.csv
+/review/R24_shadow_cost_with_capital.csv
