@@ -12,7 +12,7 @@
 # variable THESIS_CODE_DIR before sourcing).
 # ============================================================================
 
-PIPELINE_VERSION <- "7.0.0"
+PIPELINE_VERSION <- "7.1.0"
 
 # ------------------------------ PATHS ----------------------------------------
 .default_dir <- getwd()
@@ -151,4 +151,9 @@ message("Pipeline v", PIPELINE_VERSION, " | PROJECT_DIR = ", PROJECT_DIR,
 
 source(file.path(PROJECT_DIR, "utils_review_v7.R"), encoding = "UTF-8")
 .store_read_original <- store_read
-store_read <- function(name) clean_bank_columns(.store_read_original(name))
+source(file.path(PROJECT_DIR, "utils_capital_inputs_v7.R"), encoding = "UTF-8")
+store_read <- function(name) {
+  x <- clean_bank_columns(.store_read_original(name))
+  if (name == "mart_bank_month_v6" && nrow(x)) x <- attach_capital_inputs(x)
+  x
+}
